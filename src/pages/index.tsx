@@ -49,7 +49,6 @@ export default function Home() {
           loading={loading}
           species={species}
           rarities={rarities}
-          lords={lords}
         />
 
         <LordsList 
