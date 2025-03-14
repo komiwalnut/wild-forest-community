@@ -74,8 +74,7 @@ export function LordsList({ lords, loading, isFetchingMore }: LordsListProps) {
             className={`lord-card ${lord.isStaked ? 'staked' : ''}`}
           >
             <div className="lord-card-header">
-              <span className="lord-id">#{lord.tokenId}</span>
-              <span className="lord-name">{lord.name}</span>
+              <span className="lord-id">Lord #{lord.tokenId}</span>
             </div>
             <div className="lord-card-body">
               <div className="lord-attribute">
