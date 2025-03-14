@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { fetchNFTs } from '../../services/graphql';
-import { checkStakingStatus } from '../../services/rpc';
+import { checkStakingStatus, getTokenOwner } from '../../services/rpc';
 import { Lord, StakingStats } from '../../types';
 import { getFromCache, setCache } from '../../utils/redis';
 
@@ -18,7 +18,29 @@ export default async function handler(
       onlyStaked = 'false',
     } = req.query;
 
-    const cacheKey = `lords:${from}-${size}`;
+    const cacheKey = `lords:${from}-${size}-${lordSpecie}-${lordRarity}-${minDuration}-${onlyStaked}`;
+    
+    const cachedLords = await getFromCache<Lord[]>(cacheKey);
+    
+    if (cachedLords && cachedLords.length > 0) {
+      console.log(`Found ${cachedLords.length} lords in cache for key ${cacheKey}`);
+      
+      const filteredLords = applyFilters(cachedLords, {
+        lordSpecie: lordSpecie as string,
+        lordRarity: lordRarity as string,
+        minDuration: parseInt(minDuration as string),
+        onlyStaked: onlyStaked === 'true'
+      });
+      
+      const stats = calculateStats(cachedLords);
+      
+      res.status(200).json({
+        lords: filteredLords,
+        stats,
+        fromCache: true
+      });
+      return;
+    }
     
     const fromInt = parseInt(from as string);
     const sizeInt = parseInt(size as string);
@@ -34,13 +56,24 @@ export default async function handler(
 
       if (stakingDuration === null) {
         stakingDuration = await checkStakingStatus(lord.tokenId);
-        await setCache(stakingCacheKey, stakingDuration, 3600);
+        await setCache(stakingCacheKey, stakingDuration, 86400);
+      }
+      
+      const ownerCacheKey = `owner:${lord.tokenId}`;
+      let owner = await getFromCache<string | null>(ownerCacheKey);
+      
+      if (owner === null) {
+        owner = await getTokenOwner(lord.tokenId);
+        if (owner === null) {
+          owner = lord.owner;
+        }
+        await setCache(ownerCacheKey, owner, 86400);
       }
       
       processedLords.push({
         tokenId: lord.tokenId,
         name: lord.name,
-        owner: lord.owner,
+        owner: owner || lord.owner,
         isStaked: stakingDuration !== null,
         stakingDuration,
         attributes: {
@@ -50,7 +83,7 @@ export default async function handler(
       });
     }
 
-    await setCache(cacheKey, processedLords);
+    await setCache(cacheKey, processedLords, 86400);
 
     const filteredLords = applyFilters(processedLords, {
       lordSpecie: lordSpecie as string,

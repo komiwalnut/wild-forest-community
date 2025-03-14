@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Lord, StakingStats, FilterOptions, LORD_SPECIES, LORD_RARITIES } from '../types';
 
 export function useNFTData() {
@@ -19,6 +19,12 @@ export function useNFTData() {
     sortBy: 'durationHighToLow',
     onlyStaked: false,
   });
+
+  const filtersRef = useRef(filters);
+
+  useEffect(() => {
+    filtersRef.current = filters;
+  }, [filters]);
   
   const [isFetchingMore, setIsFetchingMore] = useState(false);
 
@@ -45,9 +51,14 @@ export function useNFTData() {
         let hasMoreResults = true;
         
         const initialFetch = async () => {
+          const currentFilters = filtersRef.current;
           const queryParams = new URLSearchParams({
             from: '0',
             size: pageSize.toString(),
+            lordSpecie: currentFilters.lordSpecie,
+            lordRarity: currentFilters.lordRarity,
+            minDuration: currentFilters.minDuration.toString(),
+            onlyStaked: currentFilters.onlyStaked.toString()
           });
           
           const response = await fetch(`/api/staking-data?${queryParams}`);
@@ -57,6 +68,11 @@ export function useNFTData() {
           }
           
           const data = await response.json();
+          
+          if (data.fromCache) {
+            console.log(`Retrieved ${data.lords.length} lords from cache for initial fetch`);
+          }
+          
           return data;
         };
         
@@ -86,9 +102,14 @@ export function useNFTData() {
               try {
                 await new Promise(resolve => setTimeout(resolve, i * 75));
                 
+                const currentFilters = filtersRef.current;
                 const queryParams = new URLSearchParams({
                   from: currentFrom.toString(),
                   size: pageSize.toString(),
+                  lordSpecie: currentFilters.lordSpecie,
+                  lordRarity: currentFilters.lordRarity,
+                  minDuration: currentFilters.minDuration.toString(),
+                  onlyStaked: currentFilters.onlyStaked.toString()
                 });
                 
                 const response = await fetch(`/api/staking-data?${queryParams}`);
@@ -99,6 +120,9 @@ export function useNFTData() {
                 }
                 
                 const data = await response.json();
+                if (data.fromCache) {
+                  console.log(`Retrieved ${data.lords.length} lords from cache for batch ${currentFrom}`);
+                }
                 return Array.isArray(data.lords) ? data.lords as Lord[] : [];
               } catch (err) {
                 console.error('Error in batch fetch:', err);

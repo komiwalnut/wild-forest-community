@@ -21,6 +21,10 @@ export async function getFromCache<T>(key: string): Promise<T | null> {
     return JSON.parse(data) as T;
   } catch (error) {
     console.error('Redis cache get error:', error);
+    try {
+      await redis.del(key);
+    } catch {
+    }
     return null;
   }
 }
@@ -29,9 +33,16 @@ export async function setCache<T>(key: string, data: T, ttl = DEFAULT_TTL): Prom
   if (!redis) return;
   
   try {
-    await redis.setex(key, ttl, JSON.stringify(data));
+    const jsonData = JSON.stringify(data);
+    
+    await redis.setex(key, ttl, jsonData);
+    console.log(`Successfully cached data for key: ${key}, TTL: ${ttl}s`);
   } catch (error) {
-    console.error('Redis cache set error:', error);
+    console.error(`Redis cache set error for key ${key}:`, error);
+    try {
+      await redis.del(key);
+    } catch {
+    }
   }
 }
 
