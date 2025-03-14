@@ -10,7 +10,7 @@ interface LordsListProps {
 
 export function LordsList({ lords, loading, isFetchingMore }: LordsListProps) {
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 24;
+  const itemsPerPage = 25;
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentLords = lords.slice(indexOfFirstItem, indexOfLastItem);

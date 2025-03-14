@@ -4,6 +4,8 @@ import { checkStakingStatus, getTokenOwner } from '../../services/rpc';
 import { Lord, StakingStats } from '../../types';
 import { getFromCache, setCache } from '../../utils/redis';
 
+const STAKING_CONTRACT = '0xfb597d6fa6c08f5434e6ecf69114497343ae13dd';
+
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
@@ -51,31 +53,41 @@ export default async function handler(
     const processedLords: Lord[] = [];
     
     for (const lord of lordResults) {
-      const stakingCacheKey = `staking:${lord.tokenId}`;
-      let stakingDuration = await getFromCache<number | null>(stakingCacheKey);
+      const isStakedBasedOnOwner = lord.owner.toLowerCase() === STAKING_CONTRACT.toLowerCase();
+      
+      let stakingDuration: number | null = null;
+      let realOwner = lord.owner;
 
-      if (stakingDuration === null) {
-        stakingDuration = await checkStakingStatus(lord.tokenId);
-        await setCache(stakingCacheKey, stakingDuration, 86400);
-      }
-      
-      const ownerCacheKey = `owner:${lord.tokenId}`;
-      let owner = await getFromCache<string | null>(ownerCacheKey);
-      
-      if (owner === null) {
-        owner = await getTokenOwner(lord.tokenId);
-        if (owner === null) {
-          owner = lord.owner;
+      if (isStakedBasedOnOwner) {
+        const stakingCacheKey = `staking:${lord.tokenId}`;
+        stakingDuration = await getFromCache<number | null>(stakingCacheKey);
+        
+        if (stakingDuration === null) {
+          stakingDuration = await checkStakingStatus(lord.tokenId);
+          await setCache(stakingCacheKey, stakingDuration, 86400);
         }
-        await setCache(ownerCacheKey, owner, 86400);
+
+        const ownerCacheKey = `owner:${lord.tokenId}`;
+        let owner = await getFromCache<string | null>(ownerCacheKey);
+        
+        if (owner === null) {
+          owner = await getTokenOwner(lord.tokenId);
+          await setCache(ownerCacheKey, owner, 86400);
+        }
+        
+        if (owner) {
+          realOwner = owner;
+        }
       }
+      
+      const isStaked = isStakedBasedOnOwner && stakingDuration !== null;
       
       processedLords.push({
         tokenId: lord.tokenId,
         name: lord.name,
-        owner: owner || lord.owner,
-        isStaked: stakingDuration !== null,
-        stakingDuration,
+        owner: realOwner,
+        isStaked: isStaked,
+        stakingDuration: isStaked ? stakingDuration : null,
         attributes: {
           rank: lord.attributes?.rank || [],
           specie: lord.attributes?.specie || [],
