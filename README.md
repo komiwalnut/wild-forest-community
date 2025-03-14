@@ -47,6 +47,7 @@ A dashboard to track and visualize staking statistics for Wild Forest Lords NFTs
 - `/src/services` - API communication
 - `/src/styles` - Global styles
 - `/src/pages` - Next.js pages and API routes
+- `/src/utils` - Redis
 
 ## Data Flow
 
