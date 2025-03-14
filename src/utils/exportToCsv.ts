@@ -1,4 +1,4 @@
-export function exportToCsv<T extends Record<string, any>>(data: T[], filename: string): void {
+export function exportToCsv<T extends Record<string, unknown>>(data: T[], filename: string): void {
     if (data.length === 0) {
       console.warn('No data to export');
       return;

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FilterOptions, SortOption, Lord } from '../../types';
+import { FilterOptions, SortOption } from '../../types';
 
 interface FilterControlsProps {
   filters: FilterOptions;
@@ -7,10 +7,9 @@ interface FilterControlsProps {
   loading: boolean;
   species: string[];
   rarities: string[];
-  lords: Lord[];
 }
 
-export function FilterControls({ filters, updateFilters, loading, species, rarities, lords }: FilterControlsProps) {
+export function FilterControls({ filters, updateFilters, loading, species, rarities }: FilterControlsProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
   return (
