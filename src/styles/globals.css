@@ -401,6 +401,66 @@ footer {
   border-color: var(--color-secondary);
 }
 
+.lord-card.staked.rare {
+  border-color: #2c90ac;
+  box-shadow: 0 4px 6px rgba(44, 144, 172, 0.2);
+}
+
+.lord-card.staked.epic {
+  border-color: #6654f1;
+  box-shadow: 0 4px 6px rgba(102, 84, 241, 0.2);
+}
+
+.lord-card.staked.legendary {
+  border-color: #eec315;
+  box-shadow: 0 4px 6px rgba(238, 195, 21, 0.2);
+}
+
+.lord-card.staked.mystic {
+  border-color: #40f1fe;
+  box-shadow: 0 4px 6px rgba(64, 241, 254, 0.2);
+}
+
+.lord-card.staked.rare:hover {
+  box-shadow: 0 8px 15px rgba(44, 144, 172, 0.3);
+}
+
+.lord-card.staked.epic:hover {
+  box-shadow: 0 8px 15px rgba(102, 84, 241, 0.3);
+}
+
+.lord-card.staked.legendary:hover {
+  box-shadow: 0 8px 15px rgba(238, 195, 21, 0.3);
+}
+
+.lord-card.staked.mystic:hover {
+  box-shadow: 0 8px 15px rgba(64, 241, 254, 0.3);
+}
+
+.lord-card.staked.rare .status-badge.staked {
+  background-color: rgba(44, 144, 172, 0.15);
+  color: #2c90ac;
+  border: 1px solid rgba(44, 144, 172, 0.3);
+}
+
+.lord-card.staked.epic .status-badge.staked {
+  background-color: rgba(102, 84, 241, 0.15);
+  color: #6654f1;
+  border: 1px solid rgba(102, 84, 241, 0.3);
+}
+
+.lord-card.staked.legendary .status-badge.staked {
+  background-color: rgba(238, 195, 21, 0.15);
+  color: #eec315;
+  border: 1px solid rgba(238, 195, 21, 0.3);
+}
+
+.lord-card.staked.mystic .status-badge.staked {
+  background-color: rgba(64, 241, 254, 0.15);
+  color: #40f1fe;
+  border: 1px solid rgba(64, 241, 254, 0.3);
+}
+
 .lord-card-header {
   background-color: var(--color-dark);
   padding: 1rem;
@@ -679,4 +739,47 @@ select::-ms-expand {
 
 .contract-link {
   color: var(--color-primary-light) !important;
+  text-decoration: none;
+  font-weight: 700;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.contract-link:hover {
+  color: var(--color-primary) !important;
+  text-shadow: 0 0 1px rgba(255, 183, 76, 0.3);
+}
+
+.contract-link:after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 2px;
+  bottom: -2px;
+  left: 0;
+  background-color: var(--color-primary);
+  visibility: hidden;
+  transition: all 0.2s ease-in-out;
+}
+
+.contract-link:hover:after {
+  visibility: visible;
+  width: 100%;
+}
+
+.lord-card .contract-link:hover {
+  transform: translateY(-1px);
+}
+
+.filter-export-btn {
+  margin-left: 1rem;
+}
+
+.filter-export-btn:hover:not(:disabled) {
+  background-color: var(--color-secondary-dark);
+}
+
+.filter-export-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }

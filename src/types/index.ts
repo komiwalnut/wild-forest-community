@@ -55,5 +55,5 @@ export interface Lord {
     | 'tokenIdAsc'
     | 'tokenIdDesc';
   
-  export const LORD_SPECIES = ['All Species', 'Wolf', 'Owl', 'Raven', 'Boar', 'Fox'];
-  export const LORD_RARITIES = ['All Rarities', 'Rare', 'Epic', 'Legendary', 'Mystic'];
+  export const LORD_SPECIES = ['All', 'Wolf', 'Owl', 'Raven', 'Boar', 'Fox'];
+  export const LORD_RARITIES = ['All', 'Rare', 'Epic', 'Legendary', 'Mystic'];

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FilterOptions, SortOption } from '../../types';
+import { FilterOptions, SortOption, Lord } from '../../types';
 
 interface FilterControlsProps {
   filters: FilterOptions;
@@ -7,25 +7,28 @@ interface FilterControlsProps {
   loading: boolean;
   species: string[];
   rarities: string[];
+  lords: Lord[];
 }
 
-export function FilterControls({ filters, updateFilters, loading, species, rarities }: FilterControlsProps) {
+export function FilterControls({ filters, updateFilters, loading, species, rarities, lords }: FilterControlsProps) {
   const [isExpanded, setIsExpanded] = useState(false);
-  
+
   return (
     <div className="filters-container">
       <div className="filters-header" onClick={() => setIsExpanded(!isExpanded)}>
         <h3 className="filters-title">Filters</h3>
-        <button className="filter-toggle">
-          {isExpanded ? '↑' : '↓'}
-        </button>
+        <div className="flex items-center">
+          <button className="filter-toggle">
+            {isExpanded ? '↑' : '↓'}
+          </button>
+        </div>
       </div>
       
       <div className={`filters-body ${isExpanded ? 'expanded' : ''}`}>
         <div className="filters-form">
           <div className="filter-section">
             <div className="form-group">
-              <label className="form-label">Lord Species</label>
+              <label className="form-label">Specie</label>
               <div className="select-wrapper">
                 <select 
                   className="form-control"
@@ -42,7 +45,7 @@ export function FilterControls({ filters, updateFilters, loading, species, rarit
             </div>
             
             <div className="form-group">
-              <label className="form-label">Lord Rarity</label>
+              <label className="form-label">Rarity</label>
               <div className="select-wrapper">
                 <select 
                   className="form-control"
@@ -61,7 +64,7 @@ export function FilterControls({ filters, updateFilters, loading, species, rarit
           
           <div className="filter-section">
             <div className="form-group">
-              <label className="form-label">Min Duration (days)</label>
+              <label className="form-label">Minimum Duration (days)</label>
               <div className="number-input-wrapper">
                 <input 
                   type="number"
@@ -112,8 +115,8 @@ export function FilterControls({ filters, updateFilters, loading, species, rarit
               <button 
                 className="btn btn-primary"
                 onClick={() => updateFilters({ 
-                  lordSpecie: 'All Species',
-                  lordRarity: 'All Rarities',
+                  lordSpecie: 'All',
+                  lordRarity: 'All',
                   minDuration: 0,
                   sortBy: 'durationHighToLow',
                   onlyStaked: false
