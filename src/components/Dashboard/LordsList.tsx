@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Lord } from '../../types';
 import { useExportLords } from '../../hooks/useExportLords';
 
@@ -10,18 +10,34 @@ interface LordsListProps {
 
 export function LordsList({ lords, loading, isFetchingMore }: LordsListProps) {
   const [currentPage, setCurrentPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filteredLords, setFilteredLords] = useState<Lord[]>(lords);
+  
   const itemsPerPage = 25;
+
+  useEffect(() => {
+    if (searchTerm === '') {
+      setFilteredLords(lords);
+    } else {
+      const filtered = lords.filter(lord => 
+        lord.owner.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      setFilteredLords(filtered);
+    }
+    setCurrentPage(1);
+  }, [searchTerm, lords]);
+  
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentLords = lords.slice(indexOfFirstItem, indexOfLastItem);
+  const currentLords = filteredLords.slice(indexOfFirstItem, indexOfLastItem);
 
   const exportLords = useExportLords();
   
   const handleExport = () => {
-    exportLords(lords);
+    exportLords(searchTerm ? filteredLords : lords);
   };
   
-  const totalPages = Math.ceil(lords.length / itemsPerPage);
+  const totalPages = Math.ceil(filteredLords.length / itemsPerPage);
   
   const formatAddress = (address: string) => {
     return `${address.substring(0, 6)}...${address.substring(address.length - 4)}`;
@@ -48,11 +64,44 @@ export function LordsList({ lords, loading, isFetchingMore }: LordsListProps) {
         return '';
     }
   };
+
+  const renderHeader = () => (
+    <div className="card-header">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between">
+        <div className="text-sm text-light-alt mb-2 md:mb-0">
+          {filteredLords.length === 0 
+            ? "Showing 0 Lords" 
+            : `Showing ${indexOfFirstItem + 1}-${Math.min(indexOfLastItem, filteredLords.length)} of ${filteredLords.length} Lords`}
+        </div>
+        
+        <div className="header-controls w-full md:w-auto">
+          <input
+            type="text"
+            placeholder="Search by address..."
+            className="form-control search-input w-full"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+          
+          <button
+            className="btn btn-secondary export-btn mt-2 md:mt-0 md:ml-2"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleExport();
+            }}
+            disabled={loading || lords.length === 0}
+          >
+            Export CSV
+          </button>
+        </div>
+      </div>
+    </div>
+  );
   
   if (loading && lords.length === 0) {
     return (
       <div className="card">
-        <div className="card-header">Lords Collection</div>
+        {renderHeader()}
         <div className="lords-grid">
           {Array.from({ length: 8 }).map((_, index) => (
             <div key={index} className="lord-card skeleton">
@@ -70,14 +119,14 @@ export function LordsList({ lords, loading, isFetchingMore }: LordsListProps) {
     );
   }
   
-  if (lords.length === 0) {
+  if (lords.length === 0 || filteredLords.length === 0) {
     return (
       <div className="card">
-        <div className="card-header">Lords Collection</div>
+        {renderHeader()}
         <div className="empty-state">
           <div className="empty-icon">🔍</div>
           <h3>No Lords found</h3>
-          <p>Try adjusting your filters to see more results</p>
+          <p>Try adjusting your filters {searchTerm && 'or search term'} to see more results</p>
         </div>
       </div>
     );
@@ -85,21 +134,7 @@ export function LordsList({ lords, loading, isFetchingMore }: LordsListProps) {
   
   return (
     <div className="card">
-      <div className="card-header flex justify-between items-center">
-        <span className="text-sm text-light-alt">
-          Showing {indexOfFirstItem + 1}-{Math.min(indexOfLastItem, lords.length)} of {lords.length} Lords
-        </span>
-        <button
-            className="btn btn-secondary filter-export-btn"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleExport();
-            }}
-            disabled={loading || lords.length === 0}
-          >
-            Export CSV
-          </button>
-      </div>
+      {renderHeader()}
       
       <div className="lords-grid">
         {currentLords.map((lord) => (
