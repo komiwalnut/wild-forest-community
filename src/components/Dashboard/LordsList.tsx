@@ -208,18 +208,18 @@ export function LordsList({ lords, loading, isFetchingMore }: LordsListProps) {
             onClick={() => setCurrentPage(1)}
             disabled={currentPage === 1}
           >
-            First
+            1
           </button>
           <button 
             className="page-control" 
             onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
             disabled={currentPage === 1}
           >
-            Previous
+            &larr;
           </button>
           
           <div className="page-info">
-            Page {currentPage} of {totalPages}
+            {currentPage}
           </div>
           
           <button 
@@ -227,14 +227,14 @@ export function LordsList({ lords, loading, isFetchingMore }: LordsListProps) {
             onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
             disabled={currentPage === totalPages}
           >
-            Next
+            &rarr;
           </button>
           <button 
             className="page-control" 
             onClick={() => setCurrentPage(totalPages)}
             disabled={currentPage === totalPages}
           >
-            Last
+            {totalPages}
           </button>
         </div>
       )}
