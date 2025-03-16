@@ -24,7 +24,7 @@ export default function Home() {
       <Head>
         <title>Wild Forest: Lord Collection - Staking Tracker</title>
         <meta name="description" content="Track staking statistics for Wild Forest Lords NFTs" />
-        <link rel="icon" href="/images/favicon.ico" />
+        <link rel="icon" href="/images/logo.png" />
       </Head>
 
       <Layout>
