@@ -50,39 +50,42 @@ export default async function handler(
     const response = await fetchNFTs(sizeInt, fromInt);
     const lordResults = response.data.erc721Tokens.results;
     
-    const processedLords: Lord[] = [];
-    
-    for (const lord of lordResults) {
+    const processPromises = lordResults.map(async (lord) => {
       const isStakedBasedOnOwner = lord.owner.toLowerCase() === STAKING_CONTRACT.toLowerCase();
       
       let stakingDuration: number | null = null;
       let realOwner = lord.owner;
-
+    
       if (isStakedBasedOnOwner) {
-        const stakingCacheKey = `staking:${lord.tokenId}`;
-        stakingDuration = await getFromCache<number | null>(stakingCacheKey);
+        const [duration, owner] = await Promise.all([
+          (async () => {
+            const stakingCacheKey = `staking:${lord.tokenId}`;
+            const cachedDuration = await getFromCache<number | null>(stakingCacheKey);
+            if (cachedDuration !== null) return cachedDuration;
+            
+            const fetchedDuration = await checkStakingStatus(lord.tokenId);
+            await setCache(stakingCacheKey, fetchedDuration);
+            return fetchedDuration;
+          })(),
+          
+          (async () => {
+            const ownerCacheKey = `owner:${lord.tokenId}`;
+            const cachedOwner = await getFromCache<string | null>(ownerCacheKey);
+            if (cachedOwner !== null) return cachedOwner;
+            
+            const fetchedOwner = await getTokenOwner(lord.tokenId);
+            await setCache(ownerCacheKey, fetchedOwner);
+            return fetchedOwner;
+          })()
+        ]);
         
-        if (stakingDuration === null) {
-          stakingDuration = await checkStakingStatus(lord.tokenId);
-          await setCache(stakingCacheKey, stakingDuration, 86400);
-        }
-
-        const ownerCacheKey = `owner:${lord.tokenId}`;
-        let owner = await getFromCache<string | null>(ownerCacheKey);
-        
-        if (owner === null) {
-          owner = await getTokenOwner(lord.tokenId);
-          await setCache(ownerCacheKey, owner, 86400);
-        }
-        
-        if (owner) {
-          realOwner = owner;
-        }
+        stakingDuration = duration;
+        if (owner) realOwner = owner;
       }
       
       const isStaked = isStakedBasedOnOwner && stakingDuration !== null;
       
-      processedLords.push({
+      return {
         tokenId: lord.tokenId,
         name: lord.name,
         owner: realOwner,
@@ -92,10 +95,12 @@ export default async function handler(
           rank: lord.attributes?.rank || [],
           specie: lord.attributes?.specie || [],
         }
-      });
-    }
+      };
+    });
 
-    await setCache(cacheKey, processedLords, 86400);
+    const processedLords = await Promise.all(processPromises);
+
+    await setCache(cacheKey, processedLords);
 
     const filteredLords = applyFilters(processedLords, {
       lordSpecie: lordSpecie as string,
