@@ -68,10 +68,17 @@ export function LordsList({ lords, loading, isFetchingMore }: LordsListProps) {
   const renderHeader = () => (
     <div className="card-header">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-        <div className="text-sm text-light-alt mb-2 md:mb-0">
+        <div className="text-sm text-light-alt mb-2 md:mb-0" style={{ display: "flex", alignItems: "center", whiteSpace: "nowrap" }}>
           {filteredLords.length === 0 
             ? "Showing 0 Lords" 
-            : `Showing ${indexOfFirstItem + 1}-${Math.min(indexOfLastItem, filteredLords.length)} of ${filteredLords.length} Lords`}
+            : <span>Showing {indexOfFirstItem + 1}-{Math.min(indexOfLastItem, filteredLords.length)} of {filteredLords.length} Lords</span>
+          }
+          
+          {lords.length > 0 && isFetchingMore && (
+            <div style={{ marginLeft: "8px", display: "inline-flex", alignItems: "center" }}>
+              <div className="inline-spinner"></div>
+            </div>
+          )}
         </div>
         
         <div className="header-controls w-full md:w-auto">
@@ -193,13 +200,6 @@ export function LordsList({ lords, loading, isFetchingMore }: LordsListProps) {
           </div>
         ))}
       </div>
-      
-      {lords.length > 0 && isFetchingMore && (
-        <div className="loading-more">
-          <div className="loading-spinner"></div>
-          <span>Loading more Lords...</span>
-        </div>
-      )}
       
       {totalPages > 1 && (
         <div className="pagination">
