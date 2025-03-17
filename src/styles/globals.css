@@ -59,22 +59,30 @@ body {
   background-color: rgba(255, 255, 255, 0.05);
   display: flex;
   align-items: center;
-  justify-content: center !important;
-}
-
-.image-wrapper {
-  display: flex !important;
+  justify-content: flex-start !important;
+  padding: 0.75rem 2rem;
 }
 
 .logo-text-container {
   margin-left: 1rem !important;
 }
 
+.nav-container {
+  display: flex;
+  margin-left: 2rem;
+  gap: 1.5rem;
+}
+
+
 .nav-link {
   color: var(--color-light-alt);
   padding: 0.5rem;
   border-radius: 0.375rem;
   transition: all var(--transition-base);
+  text-decoration: none !important;
+  font-size: 1.25rem;
+  font-weight: 500;
+  white-space: nowrap;
 }
 
 .nav-link:hover {
@@ -83,7 +91,7 @@ body {
 
 .nav-link.active {
   color: var(--color-primary);
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .card {
@@ -576,6 +584,21 @@ footer {
   
   .export-btn {
     display: none;
+  }
+
+  .logo-container {
+    flex-direction: column;
+    padding: 0.75rem 1rem;
+  }
+  
+  .nav-container {
+    margin-left: 0;
+    margin-top: 0.75rem;
+    justify-content: center;
+  }
+  
+  .nav-link {
+    font-size: 1rem;
   }
 }
 
