@@ -1,9 +1,9 @@
 import React from 'react';
 import Head from 'next/head';
 import { Layout } from '../components/Layout/Layout';
-import { StakingStats } from '../components/Dashboard/StakingStats';
-import { FilterControls } from '../components/Dashboard/FilterControls';
-import { LordsList } from '../components/Dashboard/LordsList';
+import { StakingStats } from '../components/Lords/StakingStats';
+import { FilterControls } from '../components/Lords/FilterControls';
+import { LordsList } from '../components/Lords/LordsList';
 import { useNFTData } from '../hooks/useNFTData';
 
 export default function Home() {
@@ -22,7 +22,7 @@ export default function Home() {
   return (
     <>
       <Head>
-        <title>Wild Forest: Lord Collection - Staking Tracker</title>
+        <title>Wild Forest: Lords Dashboard</title>
         <meta name="description" content="Track staking statistics for Wild Forest Lords NFTs" />
         <link rel="icon" href="/images/favicon.ico" />
       </Head>
