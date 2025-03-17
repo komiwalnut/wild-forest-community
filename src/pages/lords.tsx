@@ -4,7 +4,7 @@ import { Layout } from '../components/Layout/Layout';
 import { StakingStats } from '../components/Lords/StakingStats';
 import { FilterControls } from '../components/Lords/FilterControls';
 import { LordsList } from '../components/Lords/LordsList';
-import { useNFTData } from '../hooks/useNFTData';
+import { useNFTData } from '../hooks/useLordsData';
 
 export default function Home() {
   const {
