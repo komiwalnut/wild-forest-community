@@ -4,9 +4,6 @@ let redis: Redis | null = null;
 
 if (process.env.REDIS_URL) {
   redis = new Redis(process.env.REDIS_URL);
-  console.log('Redis client initialized');
-} else {
-  console.log('No REDIS_URL found, caching disabled');
 }
 
 function getTimeUntil6PMPH(): number {
@@ -49,7 +46,6 @@ export async function setCache<T>(key: string, data: T, ttl?: number): Promise<v
     const expirySeconds = ttl ?? getTimeUntil6PMPH();
     
     await redis.setex(key, expirySeconds, jsonData);
-    console.log(`Successfully cached data for key: ${key}, TTL: ${expirySeconds}s`);
   } catch (error) {
     console.error(`Redis cache set error for key ${key}:`, error);
     try {
@@ -66,7 +62,6 @@ export async function invalidateCache(pattern: string): Promise<void> {
     const keys = await redis.keys(pattern);
     if (keys.length > 0) {
       await redis.del(...keys);
-      console.log(`Invalidated ${keys.length} keys matching pattern: ${pattern}`);
     }
   } catch (error) {
     console.error('Redis cache invalidation error:', error);
