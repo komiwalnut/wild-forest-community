@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Lord, StakingStats, FilterOptions, LORD_SPECIES, LORD_RARITIES } from '../types';
 
-export function useNFTData() {
+export function useLordsData() {
   const [lords, setLords] = useState<Lord[]>([]);
   const [filteredLords, setFilteredLords] = useState<Lord[]>([]);
   const [loading, setLoading] = useState(true);

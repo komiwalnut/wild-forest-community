@@ -4,7 +4,7 @@ import { Layout } from '../components/Layout/Layout';
 import { StakingStats } from '../components/Lords/StakingStats';
 import { FilterControls } from '../components/Lords/FilterControls';
 import { LordsList } from '../components/Lords/LordsList';
-import { useNFTData } from '../hooks/useLordsData';
+import { useLordsData } from '../hooks/useLordsData';
 
 export default function Home() {
   const {
@@ -17,7 +17,7 @@ export default function Home() {
     species,
     rarities,
     isFetchingMore
-  } = useNFTData();
+  } = useLordsData();
 
   return (
     <>
