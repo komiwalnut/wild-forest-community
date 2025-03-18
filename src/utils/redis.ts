@@ -67,3 +67,15 @@ export async function invalidateCache(pattern: string): Promise<void> {
     console.error('Redis cache invalidation error:', error);
   }
 }
+
+export async function getMasterCache<T>(collectionKey: string): Promise<T | null> {
+  if (!redis) return null;
+  const masterKey = `master:${collectionKey}`;
+  return getFromCache<T>(masterKey);
+}
+
+export async function setMasterCache<T>(collectionKey: string, data: T): Promise<void> {
+  if (!redis) return;
+  const masterKey = `master:${collectionKey}`;
+  return setCache(masterKey, data);
+}

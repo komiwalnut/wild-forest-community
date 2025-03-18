@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { fetchNFTs } from '../../services/graphql';
 import { checkStakingStatus, getTokenOwner } from '../../services/rpc';
 import { Lord, StakingStats } from '../../types';
-import { getFromCache, setCache } from '../../utils/redis';
+import { getFromCache, setCache, getMasterCache, setMasterCache } from '../../utils/redis';
 
 const STAKING_CONTRACT = '0xfb597d6fa6c08f5434e6ecf69114497343ae13dd';
 
@@ -14,11 +14,36 @@ export default async function handler(
     const { 
       from = '0', 
       size = '50', 
-      lordSpecie = 'All Species',
-      lordRarity = 'All Rarities',
+      lordSpecie = 'All',
+      lordRarity = 'All',
       minDuration = '0',
       onlyStaked = 'false',
+      checkMaster = 'true'
     } = req.query;
+
+    if (checkMaster === 'true' && from === '0') {
+      const masterLords = await getMasterCache<Lord[]>('lords');
+      
+      if (masterLords && masterLords.length > 0) {
+        const filteredLords = applyFilters(masterLords, {
+          lordSpecie: lordSpecie as string,
+          lordRarity: lordRarity as string,
+          minDuration: parseInt(minDuration as string),
+          onlyStaked: onlyStaked === 'true'
+        });
+        
+        const stats = calculateStats(masterLords);
+        
+        res.status(200).json({
+          lords: filteredLords,
+          stats,
+          fromCache: true,
+          isMasterCache: true,
+          totalCount: masterLords.length
+        });
+        return;
+      }
+    }
 
     const cacheKey = `lords:${from}-${size}-${lordSpecie}-${lordRarity}-${minDuration}-${onlyStaked}`;
     
@@ -102,6 +127,27 @@ export default async function handler(
 
     await setCache(cacheKey, processedLords);
 
+    if (lordResults.length === 0 && fromInt > 0) {
+      const allCachedLords: Lord[] = [];
+      const batchSize = sizeInt;
+      let completeCacheFound = true;
+
+      for (let batchFrom = 0; batchFrom < fromInt && completeCacheFound; batchFrom += batchSize) {
+        const batchKey = `lords:${batchFrom}-${size}-${lordSpecie}-${lordRarity}-${minDuration}-${onlyStaked}`;
+        const batchLords = await getFromCache<Lord[]>(batchKey);
+        
+        if (batchLords && batchLords.length > 0) {
+          allCachedLords.push(...batchLords);
+        } else {
+          completeCacheFound = false;
+        }
+      }
+
+      if (completeCacheFound && allCachedLords.length > 0) {
+        await setMasterCache('lords', allCachedLords);
+      }
+    }
+
     const filteredLords = applyFilters(processedLords, {
       lordSpecie: lordSpecie as string,
       lordRarity: lordRarity as string,
@@ -137,12 +183,12 @@ function applyFilters(lords: Lord[], filters: {
     }
     
     const specie = lord.attributes.specie[0]?.toLowerCase() || '';
-    const matchesSpecie = filters.lordSpecie === 'All Species' ? 
+    const matchesSpecie = filters.lordSpecie === 'All' ? 
       true : 
       specie === filters.lordSpecie.toLowerCase();
     
     const rarity = lord.attributes.rank[0]?.toLowerCase() || '';
-    const matchesRarity = filters.lordRarity === 'All Rarities' ? 
+    const matchesRarity = filters.lordRarity === 'All' ? 
       true : 
       rarity === filters.lordRarity.toLowerCase();
     
