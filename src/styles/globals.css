@@ -99,7 +99,7 @@ body {
   border-radius: 0.5rem;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   padding: 1.5rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 2rem;
 }
 
 .card-header {
@@ -220,12 +220,13 @@ body {
 .data-table {
   width: 100%;
   border-collapse: collapse;
+  margin-bottom: 1.5rem;
 }
 
 .data-table th,
 .data-table td {
-  padding: 1rem;
-  text-align: left;
+  padding: 0.75rem;
+  text-align: center;
   border-bottom: 1px solid #3a4940;
 }
 
@@ -547,6 +548,11 @@ footer {
   gap: 1.5rem;
 }
 
+.raffle-calculation {
+  padding: 0rem 1.5rem;
+  display: grid;
+}
+
 @media (min-width: 768px) {
   .filters-form {
     grid-template-columns: repeat(3, 1fr);
@@ -573,12 +579,6 @@ footer {
   
   .header-controls {
     margin-top: 0.75rem;
-    width: 100%;
-  }
-  
-  .search-input {
-    margin: 1rem 0rem 0rem 0rem !important;
-    max-width: none;
     width: 100%;
   }
   
@@ -832,3 +832,22 @@ select::-ms-expand {
   cursor: not-allowed;
 }
 
+.raffle.staked.rare {
+  color: #5fa7bb;
+}
+
+.raffle.staked.epic {
+  color: #7d6df7;
+}
+
+.raffle.staked.legendary {
+  color: #eec315;
+}
+
+.raffle.staked.mystic {
+  color: #40f1fe;
+}
+
+.raffle.power {
+  color: #f3254e;
+}
