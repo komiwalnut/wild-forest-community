@@ -14,7 +14,7 @@ export function Footer() {
           </a>
         </p>
         <p className="mt-2">
-          © {new Date().getFullYear()} | Made with ❤️ by Player 222
+          © {new Date().getFullYear()} | Made with ❤️ by Player 222 (<a href="https://explorer.roninchain.com/address/medeasolon.ron" className="contract-link">medeasolon.ron</a>)
         </p>
       </div>
     </footer>
