@@ -133,23 +133,63 @@ export default async function handler(
     await setCache(cacheKey, processedLords);
 
     if (lordResults.length === 0 && fromInt > 0) {
-      const allCachedLords: Lord[] = [];
-      const batchSize = sizeInt;
-      let completeCacheFound = true;
-
-      for (let batchFrom = 0; batchFrom < fromInt && completeCacheFound; batchFrom += batchSize) {
-        const batchKey = `lords:${batchFrom}-${size}-${lordSpecie}-${lordRarity}-${minDuration}-${onlyStaked}`;
-        const batchLords = await getFromCache<Lord[]>(batchKey);
+      try {
+        console.log("End of results detected at offset", fromInt, "- building master cache...");
         
-        if (batchLords && batchLords.length > 0) {
-          allCachedLords.push(...batchLords);
-        } else {
-          completeCacheFound = false;
-        }
-      }
+        const allCachedLords: Lord[] = [];
+        const batchSize = sizeInt;
+        let batchIndex = 0;
+        let hasMoreBatches = true;
 
-      if (completeCacheFound && allCachedLords.length > 0) {
-        await setMasterCache('lords', allCachedLords);
+        while (hasMoreBatches && batchIndex < fromInt) {
+          const batchKey = `lords:${batchIndex}-${sizeInt}-All-All-0-false`;
+          const batchLords = await getFromCache<Lord[]>(batchKey);
+          
+          if (batchLords && batchLords.length > 0) {
+            console.log(`Adding batch ${batchIndex} with ${batchLords.length} lords to master cache`);
+            allCachedLords.push(...batchLords);
+            batchIndex += batchSize;
+          } else {
+            let retryCount = 0;
+            let foundBatch = false;
+            
+            while (retryCount < 3 && !foundBatch) {
+              console.log(`Retrying batch ${batchIndex} (attempt ${retryCount + 1})...`);
+              await new Promise(resolve => setTimeout(resolve, 1000));
+              
+              const retryBatchLords = await getFromCache<Lord[]>(batchKey);
+              if (retryBatchLords && retryBatchLords.length > 0) {
+                console.log(`Successfully retrieved batch ${batchIndex} on retry ${retryCount + 1}`);
+                allCachedLords.push(...retryBatchLords);
+                batchIndex += batchSize;
+                foundBatch = true;
+              } else {
+                retryCount++;
+              }
+            }
+            
+            if (!foundBatch) {
+              console.warn(`Missing batch at index ${batchIndex}, stopping master cache creation`);
+              hasMoreBatches = false;
+            }
+          }
+        }
+
+        if (allCachedLords.length > 0) {
+          console.log(`Creating master cache with ${allCachedLords.length} total lords`);
+          
+          const uniqueLords = Object.values(
+            allCachedLords.reduce((acc, lord) => {
+              acc[lord.tokenId] = lord;
+              return acc;
+            }, {} as Record<string, Lord>)
+          );
+          
+          await setMasterCache('lords', uniqueLords);
+          console.log(`Master cache created with ${uniqueLords.length} unique lords`);
+        }
+      } catch (cacheError) {
+        console.error('Error building master cache:', cacheError);
       }
     }
 
