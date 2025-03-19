@@ -59,22 +59,30 @@ body {
   background-color: rgba(255, 255, 255, 0.05);
   display: flex;
   align-items: center;
-  justify-content: center !important;
-}
-
-.image-wrapper {
-  display: flex !important;
+  justify-content: flex-start !important;
+  padding: 0.75rem 2rem;
 }
 
 .logo-text-container {
   margin-left: 1rem !important;
 }
 
+.nav-container {
+  display: flex;
+  margin-left: 2rem;
+  gap: 1.5rem;
+}
+
+
 .nav-link {
   color: var(--color-light-alt);
   padding: 0.5rem;
   border-radius: 0.375rem;
   transition: all var(--transition-base);
+  text-decoration: none !important;
+  font-size: 1.25rem;
+  font-weight: 500;
+  white-space: nowrap;
 }
 
 .nav-link:hover {
@@ -83,7 +91,7 @@ body {
 
 .nav-link.active {
   color: var(--color-primary);
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .card {
@@ -91,7 +99,7 @@ body {
   border-radius: 0.5rem;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   padding: 1.5rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 2rem;
 }
 
 .card-header {
@@ -212,12 +220,13 @@ body {
 .data-table {
   width: 100%;
   border-collapse: collapse;
+  margin-bottom: 1.5rem;
 }
 
 .data-table th,
 .data-table td {
-  padding: 1rem;
-  text-align: left;
+  padding: 0.75rem;
+  text-align: center;
   border-bottom: 1px solid #3a4940;
 }
 
@@ -539,6 +548,11 @@ footer {
   gap: 1.5rem;
 }
 
+.raffle-calculation {
+  padding: 0rem 1.5rem;
+  display: grid;
+}
+
 @media (min-width: 768px) {
   .filters-form {
     grid-template-columns: repeat(3, 1fr);
@@ -568,14 +582,23 @@ footer {
     width: 100%;
   }
   
-  .search-input {
-    margin: 1rem 0rem 0rem 0rem !important;
-    max-width: none;
-    width: 100%;
-  }
-  
   .export-btn {
     display: none;
+  }
+
+  .logo-container {
+    flex-direction: column;
+    padding: 0.75rem 1rem;
+  }
+  
+  .nav-container {
+    margin-left: 0;
+    margin-top: 0.75rem;
+    justify-content: center;
+  }
+  
+  .nav-link {
+    font-size: 1rem;
   }
 }
 
@@ -809,3 +832,22 @@ select::-ms-expand {
   cursor: not-allowed;
 }
 
+.raffle.staked.rare {
+  color: #5fa7bb;
+}
+
+.raffle.staked.epic {
+  color: #7d6df7;
+}
+
+.raffle.staked.legendary {
+  color: #eec315;
+}
+
+.raffle.staked.mystic {
+  color: #40f1fe;
+}
+
+.raffle.power {
+  color: #f3254e;
+}

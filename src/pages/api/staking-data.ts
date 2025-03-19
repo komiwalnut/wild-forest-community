@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { fetchNFTs } from '../../services/graphql';
 import { checkStakingStatus, getTokenOwner } from '../../services/rpc';
 import { Lord, StakingStats } from '../../types';
-import { getFromCache, setCache } from '../../utils/redis';
+import { getFromCache, setCache, getMasterCache, setMasterCache } from '../../utils/redis';
 
 const STAKING_CONTRACT = '0xfb597d6fa6c08f5434e6ecf69114497343ae13dd';
 
@@ -10,22 +10,51 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  res.setHeader('Surrogate-Control', 'no-store');
+  
   try {
     const { 
       from = '0', 
       size = '50', 
-      lordSpecie = 'All Species',
-      lordRarity = 'All Rarities',
+      lordSpecie = 'All',
+      lordRarity = 'All',
       minDuration = '0',
       onlyStaked = 'false',
+      checkMaster = 'true'
     } = req.query;
+
+    if (checkMaster === 'true' && from === '0') {
+      const masterLords = await getMasterCache<Lord[]>('lords');
+      
+      if (masterLords && masterLords.length > 0) {
+        const filteredLords = applyFilters(masterLords, {
+          lordSpecie: lordSpecie as string,
+          lordRarity: lordRarity as string,
+          minDuration: parseInt(minDuration as string),
+          onlyStaked: onlyStaked === 'true'
+        });
+        
+        const stats = calculateStats(masterLords);
+        
+        res.status(200).json({
+          lords: filteredLords,
+          stats,
+          fromCache: true,
+          isMasterCache: true,
+          totalCount: masterLords.length
+        });
+        return;
+      }
+    }
 
     const cacheKey = `lords:${from}-${size}-${lordSpecie}-${lordRarity}-${minDuration}-${onlyStaked}`;
     
     const cachedLords = await getFromCache<Lord[]>(cacheKey);
     
     if (cachedLords && cachedLords.length > 0) {
-      console.log(`Found ${cachedLords.length} lords in cache for key ${cacheKey}`);
       
       const filteredLords = applyFilters(cachedLords, {
         lordSpecie: lordSpecie as string,
@@ -102,6 +131,60 @@ export default async function handler(
 
     await setCache(cacheKey, processedLords);
 
+    if (lordResults.length === 0 && fromInt > 0) {
+      try {  
+        const allCachedLords: Lord[] = [];
+        const batchSize = sizeInt;
+        let batchIndex = 0;
+        let hasMoreBatches = true;
+
+        while (hasMoreBatches && batchIndex < fromInt) {
+          const batchKey = `lords:${batchIndex}-${sizeInt}-All-All-0-false`;
+          const batchLords = await getFromCache<Lord[]>(batchKey);
+          
+          if (batchLords && batchLords.length > 0) {
+            allCachedLords.push(...batchLords);
+            batchIndex += batchSize;
+          } else {
+            let retryCount = 0;
+            let foundBatch = false;
+            
+            while (retryCount < 3 && !foundBatch) {
+              await new Promise(resolve => setTimeout(resolve, 1000));
+              
+              const retryBatchLords = await getFromCache<Lord[]>(batchKey);
+              if (retryBatchLords && retryBatchLords.length > 0) {
+                allCachedLords.push(...retryBatchLords);
+                batchIndex += batchSize;
+                foundBatch = true;
+              } else {
+                retryCount++;
+              }
+            }
+            
+            if (!foundBatch) {
+              console.warn(`Missing batch at index ${batchIndex}, stopping master cache creation`);
+              hasMoreBatches = false;
+            }
+          }
+        }
+
+        if (allCachedLords.length > 0) {
+          
+          const uniqueLords = Object.values(
+            allCachedLords.reduce((acc, lord) => {
+              acc[lord.tokenId] = lord;
+              return acc;
+            }, {} as Record<string, Lord>)
+          );
+          
+          await setMasterCache('lords', uniqueLords);
+        }
+      } catch (cacheError) {
+        console.error('Error building master cache:', cacheError);
+      }
+    }
+
     const filteredLords = applyFilters(processedLords, {
       lordSpecie: lordSpecie as string,
       lordRarity: lordRarity as string,
@@ -137,12 +220,12 @@ function applyFilters(lords: Lord[], filters: {
     }
     
     const specie = lord.attributes.specie[0]?.toLowerCase() || '';
-    const matchesSpecie = filters.lordSpecie === 'All Species' ? 
+    const matchesSpecie = filters.lordSpecie === 'All' ? 
       true : 
       specie === filters.lordSpecie.toLowerCase();
     
     const rarity = lord.attributes.rank[0]?.toLowerCase() || '';
-    const matchesRarity = filters.lordRarity === 'All Rarities' ? 
+    const matchesRarity = filters.lordRarity === 'All' ? 
       true : 
       rarity === filters.lordRarity.toLowerCase();
     

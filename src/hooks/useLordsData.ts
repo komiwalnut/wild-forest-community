@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Lord, StakingStats, FilterOptions, LORD_SPECIES, LORD_RARITIES } from '../types';
 
-export function useNFTData() {
+export function useLordsData() {
   const [lords, setLords] = useState<Lord[]>([]);
   const [filteredLords, setFilteredLords] = useState<Lord[]>([]);
   const [loading, setLoading] = useState(true);
@@ -13,8 +13,8 @@ export function useNFTData() {
   });
   
   const [filters, setFilters] = useState<FilterOptions>({
-    lordSpecie: 'All Species',
-    lordRarity: 'All Rarities',
+    lordSpecie: 'All',
+    lordRarity: 'All',
     minDuration: 0,
     sortBy: 'durationHighToLow',
     onlyStaked: false,
@@ -44,7 +44,30 @@ export function useNFTData() {
     async function fetchData() {
       try {
         setLoading(true);
+
+        const masterQueryParams = new URLSearchParams({
+          from: '0',
+          size: '50',
+          lordSpecie: filtersRef.current.lordSpecie,
+          lordRarity: filtersRef.current.lordRarity,
+          minDuration: filtersRef.current.minDuration.toString(),
+          onlyStaked: filtersRef.current.onlyStaked.toString(),
+          checkMaster: 'true'
+        });
         
+        const masterResponse = await fetch(`/api/staking-data?${masterQueryParams}`);
+        
+        if (masterResponse.ok) {
+          const masterData = await masterResponse.json();
+          
+          if (masterData.isMasterCache) {
+            setLords(masterData.lords);
+            setStats(masterData.stats);
+            setLoading(false);
+            return;
+          }
+        }
+
         let allLords: Lord[] = [];
         let from = 0;
         const pageSize = 50;
@@ -58,7 +81,8 @@ export function useNFTData() {
             lordSpecie: currentFilters.lordSpecie,
             lordRarity: currentFilters.lordRarity,
             minDuration: currentFilters.minDuration.toString(),
-            onlyStaked: currentFilters.onlyStaked.toString()
+            onlyStaked: currentFilters.onlyStaked.toString(),
+            checkMaster: 'false' 
           });
           
           const response = await fetch(`/api/staking-data?${queryParams}`);
@@ -68,11 +92,6 @@ export function useNFTData() {
           }
           
           const data = await response.json();
-          
-          if (data.fromCache) {
-            console.log(`Retrieved ${data.lords.length} lords from cache for initial fetch`);
-          }
-          
           return data;
         };
         
@@ -109,7 +128,8 @@ export function useNFTData() {
                   lordSpecie: currentFilters.lordSpecie,
                   lordRarity: currentFilters.lordRarity,
                   minDuration: currentFilters.minDuration.toString(),
-                  onlyStaked: currentFilters.onlyStaked.toString()
+                  onlyStaked: currentFilters.onlyStaked.toString(),
+                  checkMaster: 'false'
                 });
                 
                 const response = await fetch(`/api/staking-data?${queryParams}`);
@@ -120,9 +140,6 @@ export function useNFTData() {
                 }
                 
                 const data = await response.json();
-                if (data.fromCache) {
-                  console.log(`Retrieved ${data.lords.length} lords from cache for batch ${currentFrom}`);
-                }
                 return Array.isArray(data.lords) ? data.lords as Lord[] : [];
               } catch (err) {
                 console.error('Error in batch fetch:', err);
@@ -176,12 +193,12 @@ export function useNFTData() {
       }
       
       const specie = lord.attributes.specie[0]?.toLowerCase() || '';
-      const matchesSpecie = filters.lordSpecie === 'All Species' ? 
+      const matchesSpecie = filters.lordSpecie === 'All' ? 
         true : 
         specie === filters.lordSpecie.toLowerCase();
       
       const rarity = lord.attributes.rank[0]?.toLowerCase() || '';
-      const matchesRarity = filters.lordRarity === 'All Rarities' ? 
+      const matchesRarity = filters.lordRarity === 'All' ? 
         true : 
         rarity === filters.lordRarity.toLowerCase();
       

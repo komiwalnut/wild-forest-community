@@ -49,6 +49,38 @@ export interface FilterOptions {
   onlyStaked: boolean;
 }
 
+export interface OwnerData {
+  address: string;
+  totalLords: number;
+  rare: number;
+  epic: number;
+  legendary: number;
+  mystic: number;
+  staked: number;
+  rafflePower: number;
+  lords: Lord[];
+}
+
+export interface OwnerStats {
+  uniqueOwners: number;
+  highestLordCount: number;
+  highestLordOwner: string;
+}
+
+export interface OwnersStatsProps {
+  uniqueOwners: number;
+  highestLordCount: number;
+  highestLordOwner: string;
+  loading: boolean;
+}
+
+export interface OwnersListProps {
+  owners: OwnerData[];
+  loading: boolean;
+  searchTerm: string;
+  setSearchTerm: (term: string) => void;
+}
+
 export type SortOption = 
   | 'durationHighToLow' 
   | 'durationLowToHigh' 
