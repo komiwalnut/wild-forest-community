@@ -55,7 +55,6 @@ export default async function handler(
     const cachedLords = await getFromCache<Lord[]>(cacheKey);
     
     if (cachedLords && cachedLords.length > 0) {
-      console.log(`Found ${cachedLords.length} lords in cache for key ${cacheKey}`);
       
       const filteredLords = applyFilters(cachedLords, {
         lordSpecie: lordSpecie as string,
@@ -133,9 +132,7 @@ export default async function handler(
     await setCache(cacheKey, processedLords);
 
     if (lordResults.length === 0 && fromInt > 0) {
-      try {
-        console.log("End of results detected at offset", fromInt, "- building master cache...");
-        
+      try {  
         const allCachedLords: Lord[] = [];
         const batchSize = sizeInt;
         let batchIndex = 0;
@@ -146,7 +143,6 @@ export default async function handler(
           const batchLords = await getFromCache<Lord[]>(batchKey);
           
           if (batchLords && batchLords.length > 0) {
-            console.log(`Adding batch ${batchIndex} with ${batchLords.length} lords to master cache`);
             allCachedLords.push(...batchLords);
             batchIndex += batchSize;
           } else {
@@ -154,12 +150,10 @@ export default async function handler(
             let foundBatch = false;
             
             while (retryCount < 3 && !foundBatch) {
-              console.log(`Retrying batch ${batchIndex} (attempt ${retryCount + 1})...`);
               await new Promise(resolve => setTimeout(resolve, 1000));
               
               const retryBatchLords = await getFromCache<Lord[]>(batchKey);
               if (retryBatchLords && retryBatchLords.length > 0) {
-                console.log(`Successfully retrieved batch ${batchIndex} on retry ${retryCount + 1}`);
                 allCachedLords.push(...retryBatchLords);
                 batchIndex += batchSize;
                 foundBatch = true;
@@ -176,7 +170,6 @@ export default async function handler(
         }
 
         if (allCachedLords.length > 0) {
-          console.log(`Creating master cache with ${allCachedLords.length} total lords`);
           
           const uniqueLords = Object.values(
             allCachedLords.reduce((acc, lord) => {
@@ -186,7 +179,6 @@ export default async function handler(
           );
           
           await setMasterCache('lords', uniqueLords);
-          console.log(`Master cache created with ${uniqueLords.length} unique lords`);
         }
       } catch (cacheError) {
         console.error('Error building master cache:', cacheError);

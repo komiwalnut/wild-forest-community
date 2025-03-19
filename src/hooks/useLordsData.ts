@@ -92,11 +92,6 @@ export function useLordsData() {
           }
           
           const data = await response.json();
-          
-          if (data.fromCache) {
-            console.log(`Retrieved ${data.lords.length} lords from cache for initial fetch`);
-          }
-          
           return data;
         };
         
@@ -145,9 +140,6 @@ export function useLordsData() {
                 }
                 
                 const data = await response.json();
-                if (data.fromCache) {
-                  console.log(`Retrieved ${data.lords.length} lords from cache for batch ${currentFrom}`);
-                }
                 return Array.isArray(data.lords) ? data.lords as Lord[] : [];
               } catch (err) {
                 console.error('Error in batch fetch:', err);
