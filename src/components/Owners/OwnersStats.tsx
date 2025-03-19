@@ -7,10 +7,6 @@ export function OwnersStats({
   highestLordOwner, 
   loading 
 }: OwnersStatsProps) {
-  const formatAddress = (address: string) => {
-    return `${address.substring(0, 6)}...${address.substring(address.length - 4)}`;
-  };
-
   return (
     <div className="stats-container">
       <div className="stats-title">Lord Owners Statistics</div>
