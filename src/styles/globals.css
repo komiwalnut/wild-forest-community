@@ -1054,6 +1054,24 @@ select::-ms-expand {
   transform: translateY(-50%);
 }
 
+.draw-winners-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.draw-winners-form-button {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end !important;
+}
+
+.winners-results-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
 @keyframes pulse {
   0% {
     opacity: 0.6;
