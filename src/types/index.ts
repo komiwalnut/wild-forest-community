@@ -81,6 +81,60 @@ export interface OwnersListProps {
   setSearchTerm: (term: string) => void;
 }
 
+export interface Participant {
+  address: string;
+  rafflePower: number;
+  winChance: number;
+  status: 'Eligible' | 'No Raffle Power';
+}
+
+export interface Winner {
+  address: string;
+  power: number;
+  winChance: number;
+}
+
+export interface RaffleStats {
+  total: number;
+  eligible: number;
+  ineligible: number;
+  totalRafflePower: number;
+}
+
+export interface ValidationInfo {
+  lines: number;
+  validAddresses: number;
+  uniqueAddresses: number;
+  duplicates: number;
+}
+
+export interface DrawWinnersProps {
+  guaranteeCount: number;
+  fcfsCount: number;
+  setGuaranteeCount: (count: number) => void;
+  setFcfsCount: (count: number) => void;
+  drawWinners: () => void;
+  guaranteeWinners: Winner[];
+  fcfsWinners: Winner[];
+  exportWinnersToCSV: () => void;
+  loading: boolean;
+  eligibleCount: number;
+}
+
+export interface ParticipantsListProps {
+  participants: Participant[];
+  statistics: RaffleStats;
+  loading: boolean;
+}
+
+export interface AddressInputProps {
+  onAddressesChange: (text: string) => void;
+  useAllStakers: (callback?: (text: string) => void) => void;
+  validationInfo: ValidationInfo;
+  loading: boolean;
+  uniqueStakersCount: number;
+}
+
 export type SortOption = 
   | 'durationHighToLow' 
   | 'durationLowToHigh' 
