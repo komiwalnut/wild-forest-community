@@ -1057,7 +1057,9 @@ select::-ms-expand {
 .draw-winners-form {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 8px;
+  align-items: stretch;
+  flex-direction: column;
 }
 
 .draw-winners-form-button {
@@ -1066,10 +1068,28 @@ select::-ms-expand {
   align-items: flex-end !important;
 }
 
+.input-category-button .btn {
+  padding: 0.6rem 4.4rem;
+  margin-top: 7px;
+}
+
 .winners-results-buttons {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
+}
+
+.categories-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.categories-form-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: var(--color-light-alt);
+  font-size: smaller;
 }
 
 @keyframes pulse {
