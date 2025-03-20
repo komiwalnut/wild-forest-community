@@ -3,7 +3,7 @@ import { AddressInputProps } from '../../types';
 
 export function AddressInput({
   onAddressesChange,
-  useAllStakers,
+  getAllStakersAction,
   validationInfo,
   loading,
   uniqueStakersCount
@@ -20,7 +20,7 @@ export function AddressInput({
   };
   
   const handleUseAllStakers = () => {
-    useAllStakers((addressesText: string) => {
+    getAllStakersAction((addressesText: string) => {
       setInputText(addressesText);
       onAddressesChange(addressesText);
     });

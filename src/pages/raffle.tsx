@@ -74,7 +74,7 @@ export default function RafflePage() {
 
         <AddressInput 
           onAddressesChange={setAddressList}
-          useAllStakers={useAllStakers}
+          getAllStakersAction={useAllStakers}
           validationInfo={validationInfo}
           loading={loading}
           uniqueStakersCount={uniqueStakersCount}

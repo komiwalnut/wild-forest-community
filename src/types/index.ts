@@ -129,7 +129,7 @@ export interface ParticipantsListProps {
 
 export interface AddressInputProps {
   onAddressesChange: (text: string) => void;
-  useAllStakers: (callback?: (text: string) => void) => void;
+  getAllStakersAction: (callback?: (text: string) => void) => void;
   validationInfo: ValidationInfo;
   loading: boolean;
   uniqueStakersCount: number;
