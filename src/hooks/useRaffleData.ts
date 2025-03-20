@@ -168,16 +168,14 @@ export function useRaffleData() {
     if (availableParticipants.length === 0) return [];
     
     const winners: Winner[] = [];
-    let remainingParticipants = [...availableParticipants];
+    const remainingParticipants = [...availableParticipants];
+    const totalPower = remainingParticipants.reduce((sum, p) => sum + p.rafflePower, 0);
     
-    for (let i = 0; i < Math.min(count, availableParticipants.length); i++) {
-      const totalPower = remainingParticipants.reduce((sum, p) => sum + p.rafflePower, 0);
-      if (totalPower === 0) break;
-      
+    for (let i = 0; i < Math.min(count, remainingParticipants.length); i++) {
       const rand = Math.random() * totalPower;
       let cumulative = 0;
-      let selectedIndex = -1;
-  
+      let selectedIndex = 0;
+
       for (let j = 0; j < remainingParticipants.length; j++) {
         cumulative += remainingParticipants[j].rafflePower;
         if (rand <= cumulative) {
@@ -186,9 +184,8 @@ export function useRaffleData() {
         }
       }
       
-      if (selectedIndex === -1) break;
-      
       const selected = remainingParticipants[selectedIndex];
+      
       winners.push({
         address: selected.address,
         power: selected.rafflePower,
@@ -263,7 +260,7 @@ export function useRaffleData() {
     }
 
     setAllCategoryWinners(categoryWinners);
-  }, [participants]);
+  }, [participants, selectWeightedRandom, setError, setAllCategoryWinners]);
   
   return {
     addresses,

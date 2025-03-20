@@ -31,12 +31,10 @@ export function DrawWinners({
   
   const handleDrawWinners = () => {
     const errors: {[key: number]: string} = {};
-    let hasErrors = false;
     
     categories.forEach(category => {
       if (category.count <= 0) {
         errors[category.id] = "Number of Winners can't be 0";
-        hasErrors = true;
       }
     });
     
@@ -226,12 +224,35 @@ export function DrawWinners({
                             </a>
                           </div>
                           <div className="lord-attribute">
-                            <span className="attribute-label">Power:</span>
+                            <span className="attribute-label">Raffle Power:</span>
                             <span className="attribute-value">{winner.power.toLocaleString()}</span>
                           </div>
                           <div className="lord-attribute">
-                            <span className="attribute-label">Chance:</span>
-                            <span className="attribute-value">{winner.winChance.toFixed(1)}%</span>
+                            <span className="attribute-label">Win Chance:</span>
+                            <span className="attribute-value">
+                              {(() => {
+                                const formatted = winner.winChance.toFixed(2);
+
+                                if (formatted === '0.00') {
+                                  let precision = 3;
+                                  let result;
+
+                                  while (precision <= 8) {
+                                    result = winner.winChance.toFixed(precision);
+                                    if (result !== '0.' + '0'.repeat(precision)) {
+                                      return result + '%';
+                                    }
+                                    precision++;
+                                  }
+
+                                  return winner.winChance < 0.00000001 ? 
+                                    winner.winChance.toExponential(2) + '%' : 
+                                    winner.winChance.toFixed(8) + '%';
+                                }
+                                
+                                return formatted + '%';
+                              })()}
+                            </span>
                           </div>
                         </div>
                       </div>
