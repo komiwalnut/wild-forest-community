@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Lord, Participant, Winner, RaffleStats, ValidationInfo } from '../types';
+import { Lord, Participant, Winner, RaffleStats, ValidationInfo, WinnerCategory } from '../types';
 
 export function useRaffleData() {
   const [addresses, setAddresses] = useState<string[]>([]);
@@ -19,10 +19,9 @@ export function useRaffleData() {
     uniqueAddresses: 0,
     duplicates: 0,
   });
-  const [guaranteeWinners, setGuaranteeWinners] = useState<Winner[]>([]);
-  const [fcfsWinners, setFcfsWinners] = useState<Winner[]>([]);
   const [guaranteeCount, setGuaranteeCount] = useState(10);
   const [fcfsCount, setFcfsCount] = useState(5);
+  const [allCategoryWinners, setAllCategoryWinners] = useState<Winner[][]>([]);
 
   const fetchMasterData = useCallback(async () => {
     try {
@@ -165,84 +164,59 @@ export function useRaffleData() {
     }
   }, [addresses, masterData]);
 
-  const drawWinners = useCallback(() => {
-    const eligibleParticipants = participants.filter(p => p.status === 'Eligible');
+  const selectWeightedRandom = useCallback((count: number, availableParticipants: Participant[]): Winner[] => {
+    if (availableParticipants.length === 0) return [];
     
-    if (eligibleParticipants.length === 0) {
-      setError('No eligible participants for the raffle');
-      return;
-    }
+    const winners: Winner[] = [];
+    const remainingParticipants = [...availableParticipants];
+    const totalPower = remainingParticipants.reduce((sum, p) => sum + p.rafflePower, 0);
+    
+    for (let i = 0; i < Math.min(count, remainingParticipants.length); i++) {
+      const rand = Math.random() * totalPower;
+      let cumulative = 0;
+      let selectedIndex = 0;
 
-    const selectWeightedRandom = (count: number, alreadySelected: string[] = []): Winner[] => {
-      const available = eligibleParticipants.filter(p => !alreadySelected.includes(p.address));
-      
-      if (available.length === 0) return [];
-      
-      const winners: Winner[] = [];
-      const totalPower = available.reduce((sum, p) => sum + p.rafflePower, 0);
-      
-      for (let i = 0; i < Math.min(count, available.length); i++) {
-
-        const rand = Math.random() * totalPower;
-        let cumulative = 0;
-        let selected = available[0];
-
-        for (const participant of available) {
-          cumulative += participant.rafflePower;
-          if (rand <= cumulative) {
-            selected = participant;
-            break;
-          }
-        }
-        
-        winners.push({
-          address: selected.address,
-          power: selected.rafflePower,
-          winChance: selected.winChance,
-        });
-
-        const index = available.findIndex(p => p.address === selected.address);
-        if (index > -1) {
-          available.splice(index, 1);
+      for (let j = 0; j < remainingParticipants.length; j++) {
+        cumulative += remainingParticipants[j].rafflePower;
+        if (rand <= cumulative) {
+          selectedIndex = j;
+          break;
         }
       }
       
-      return winners;
-    };
+      const selected = remainingParticipants[selectedIndex];
+      
+      winners.push({
+        address: selected.address,
+        power: selected.rafflePower,
+        winChance: selected.winChance,
+      });
 
-    const drawnGuaranteeWinners = selectWeightedRandom(guaranteeCount);
-
-    const alreadySelected = drawnGuaranteeWinners.map(w => w.address);
-    const drawnFcfsWinners = selectWeightedRandom(fcfsCount, alreadySelected);
+      remainingParticipants.splice(selectedIndex, 1);
+    }
     
-    setGuaranteeWinners(drawnGuaranteeWinners);
-    setFcfsWinners(drawnFcfsWinners);
-  }, [participants, guaranteeCount, fcfsCount]);
+    return winners;
+  }, []);
 
-  const exportWinnersToCSV = useCallback(() => {
-    if (guaranteeWinners.length === 0 && fcfsWinners.length === 0) {
+  const exportWinnersToCSV = useCallback((categories: WinnerCategory[]) => {
+    const hasWinners = categories.some(c => c.winners && c.winners.length > 0);
+    
+    if (!hasWinners) {
       setError('No winners to export');
       return;
     }
     
-    const headers = ['Type', 'Number', 'Address', 'Raffle Power', 'Win Chance (%)'];
+    const headers = ['Category', 'Number', 'Address', 'Raffle Power', 'Win Chance (%)'];
     
-    const rows = [
-      ...guaranteeWinners.map((winner, index) => [
-        'Guarantee WL',
-        index + 1,
+    const rows = categories.flatMap(category => 
+      (category.winners || []).map((winner, index) => [
+        category.name,
+        (index + 1).toString(),
         winner.address,
-        winner.power,
+        winner.power.toString(),
         winner.winChance.toFixed(1),
-      ]),
-      ...fcfsWinners.map((winner, index) => [
-        'FCFS WL',
-        index + 1,
-        winner.address,
-        winner.power,
-        winner.winChance.toFixed(1),
-      ]),
-    ];
+      ])
+    );
     
     const csvContent = [
       headers.join(','),
@@ -258,11 +232,35 @@ export function useRaffleData() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-  }, [guaranteeWinners, fcfsWinners]);
+  }, []);
 
   useEffect(() => {
     fetchMasterData();
   }, [fetchMasterData]);
+  
+  const drawWinners = useCallback((categoryCounts: number[]) => {
+    const eligibleParticipants = participants.filter(p => p.status === 'Eligible');
+    
+    if (eligibleParticipants.length === 0) {
+      setError('No eligible participants for the raffle');
+      return;
+    }
+
+    const categoryWinners: Winner[][] = [];
+    let remainingParticipants = [...eligibleParticipants];
+    
+    for (const count of categoryCounts) {
+      const winners = selectWeightedRandom(count, remainingParticipants);
+      categoryWinners.push(winners);
+
+      const winnerAddresses = winners.map(w => w.address);
+      remainingParticipants = remainingParticipants.filter(
+        p => !winnerAddresses.includes(p.address)
+      );
+    }
+
+    setAllCategoryWinners(categoryWinners);
+  }, [participants, selectWeightedRandom, setError, setAllCategoryWinners]);
   
   return {
     addresses,
@@ -278,8 +276,7 @@ export function useRaffleData() {
     setGuaranteeCount,
     fcfsCount,
     setFcfsCount,
-    guaranteeWinners,
-    fcfsWinners,
+    allCategoryWinners,
     drawWinners,
     exportWinnersToCSV,
     parseAddresses,

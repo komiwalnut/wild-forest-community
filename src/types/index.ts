@@ -108,19 +108,6 @@ export interface ValidationInfo {
   duplicates: number;
 }
 
-export interface DrawWinnersProps {
-  guaranteeCount: number;
-  fcfsCount: number;
-  setGuaranteeCount: (count: number) => void;
-  setFcfsCount: (count: number) => void;
-  drawWinners: () => void;
-  guaranteeWinners: Winner[];
-  fcfsWinners: Winner[];
-  exportWinnersToCSV: () => void;
-  loading: boolean;
-  eligibleCount: number;
-}
-
 export interface ParticipantsListProps {
   participants: Participant[];
   statistics: RaffleStats;
@@ -133,6 +120,21 @@ export interface AddressInputProps {
   validationInfo: ValidationInfo;
   loading: boolean;
   uniqueStakersCount: number;
+}
+
+export interface DrawWinnersProps {
+  drawWinners: (categoryCounts: number[]) => void;
+  exportWinnersToCSV: (categories: WinnerCategory[]) => void;
+  loading: boolean;
+  eligibleCount: number;
+  allCategoryWinners: Winner[][];
+}
+
+export interface WinnerCategory {
+  id: number;
+  name: string;
+  count: number;
+  winners: Winner[];
 }
 
 export type SortOption = 

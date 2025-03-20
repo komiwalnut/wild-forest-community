@@ -16,12 +16,7 @@ export default function RafflePage() {
     loading,
     error,
     setError,
-    guaranteeCount,
-    setGuaranteeCount,
-    fcfsCount,
-    setFcfsCount,
-    guaranteeWinners,
-    fcfsWinners,
+    allCategoryWinners,
     drawWinners,
     exportWinnersToCSV
   } = useRaffleData();
@@ -87,13 +82,8 @@ export default function RafflePage() {
         />
         
         <DrawWinners 
-          guaranteeCount={guaranteeCount}
-          fcfsCount={fcfsCount}
-          setGuaranteeCount={setGuaranteeCount}
-          setFcfsCount={setFcfsCount}
           drawWinners={drawWinners}
-          guaranteeWinners={guaranteeWinners}
-          fcfsWinners={fcfsWinners}
+          allCategoryWinners={allCategoryWinners}
           exportWinnersToCSV={exportWinnersToCSV}
           loading={loading}
           eligibleCount={statistics.eligible}
