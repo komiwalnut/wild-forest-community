@@ -170,22 +170,21 @@ export function useRaffleData() {
     if (availableParticipants.length === 0) return [];
     
     const winners: Winner[] = [];
-    const remainingParticipants = [...availableParticipants];
-    const totalPower = remainingParticipants.reduce((sum, p) => sum + p.rafflePower, 0);
+    let remainingParticipants = [...availableParticipants];
     
-    for (let i = 0; i < Math.min(count, remainingParticipants.length); i++) {
-      const rand = Math.random() * totalPower;
-      let cumulative = 0;
-      let selectedIndex = 0;
-
-      for (let j = 0; j < remainingParticipants.length; j++) {
-        cumulative += remainingParticipants[j].rafflePower;
-        if (rand <= cumulative) {
-          selectedIndex = j;
-          break;
-        }
-      }
+    const winnersToSelect = Math.min(count, remainingParticipants.length);
+    
+    for (let i = 0; i < winnersToSelect; i++) {
+      const totalPower = remainingParticipants.reduce((sum, p) => sum + p.rafflePower, 0);
       
+      if (totalPower <= 0) {
+        console.warn("No more participants with positive raffle power");
+        break;
+      }
+
+      const weights = remainingParticipants.map(p => p.rafflePower / totalPower);
+
+      const selectedIndex = weightedRandomSelect(weights);
       const selected = remainingParticipants[selectedIndex];
       
       winners.push({
@@ -194,11 +193,54 @@ export function useRaffleData() {
         winChance: selected.winChance,
       });
 
-      remainingParticipants.splice(selectedIndex, 1);
+      remainingParticipants = remainingParticipants.filter((_, idx) => idx !== selectedIndex);
     }
     
     return winners;
   }, []);
+
+  function weightedRandomSelect(weights: number[]): number {
+    const n = weights.length;
+    const prob: number[] = new Array(n).fill(0);
+    const alias: number[] = new Array(n).fill(0);
+
+    const small: number[] = [];
+    const large: number[] = [];
+
+    for (let i = 0; i < n; i++) {
+      prob[i] = weights[i] * n;
+      if (prob[i] < 1.0) {
+        small.push(i);
+      } else {
+        large.push(i);
+      }
+    }
+
+    while (small.length > 0 && large.length > 0) {
+      const less = small.pop()!;
+      const more = large.pop()!;
+      
+      alias[less] = more;
+      prob[more] = prob[more] + prob[less] - 1.0;
+      
+      if (prob[more] < 1.0) {
+        small.push(more);
+      } else {
+        large.push(more);
+      }
+    }
+
+    while (large.length > 0) {
+      prob[large.pop()!] = 1.0;
+    }
+    
+    while (small.length > 0) {
+      prob[small.pop()!] = 1.0;
+    }
+
+    const i = Math.floor(Math.random() * n);
+    return Math.random() < prob[i] ? i : alias[i];
+  }
 
   const exportWinnersToCSV = useCallback((categories: WinnerCategory[]) => {
     const hasWinners = categories.some(c => c.winners && c.winners.length > 0);
