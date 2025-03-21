@@ -35,7 +35,9 @@ export function useRaffleData() {
       const data = await response.json();
       
       if (!data.isMasterCache) {
-        throw new Error('No master cache available');
+        setError('No master cache available. Please visit the Lords page first to build cache.');
+        setLoading(false);
+        return;
       }
 
       const ownerPowerMap: { [address: string]: number } = {};

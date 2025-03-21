@@ -15,7 +15,6 @@ export default function RafflePage() {
     useAllStakers,
     loading,
     error,
-    setError,
     allCategoryWinners,
     drawWinners,
     exportWinnersToCSV
@@ -58,12 +57,6 @@ export default function RafflePage() {
         {error && (
           <div className="error-message mb-6">
             {error}
-            <button 
-              className="ml-2 text-red-300 hover:text-red-100 underline" 
-              onClick={() => setError(null)}
-            >
-              Dismiss
-            </button>
           </div>
         )}
 
