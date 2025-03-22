@@ -41,6 +41,12 @@ export interface StakingStats {
   averageDuration: number;
 }
 
+export interface StakingStatsProps {
+  stats: StakingStats;
+  loading: boolean;
+  onRefresh?: () => void;
+}
+
 export interface FilterOptions {
   lordSpecie: string;
   lordRarity: string;
