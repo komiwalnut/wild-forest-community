@@ -1,22 +1,111 @@
-import React from 'react';
-import { StakingStats as StatsType } from '../../types';
+import React, { useState, useEffect } from 'react';
+import { StakingStatsProps } from '../../types';
 
-interface StakingStatsProps {
-  stats: StatsType;
-  loading: boolean;
-}
+const COOLDOWN_PERIOD = 30;
 
-export function StakingStats({ stats, loading }: StakingStatsProps) {
+export function StakingStats({ stats, loading, onRefresh }: StakingStatsProps) {
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [refreshError, setRefreshError] = useState<string | null>(null);
+  const [cooldown, setCooldown] = useState(0);
+  const [cooldownActive, setCooldownActive] = useState(false);
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    
+    if (cooldown > 0) {
+      setCooldownActive(true);
+      timer = setTimeout(() => {
+        setCooldown(prevCooldown => prevCooldown - 1);
+      }, 1000);
+    } else if (cooldownActive) {
+      setCooldownActive(false);
+    }
+    
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  }, [cooldown, cooldownActive]);
+
+  const handleRefresh = async () => {
+    if (isRefreshing || cooldownActive || !onRefresh) return;
+    
+    setIsRefreshing(true);
+    setRefreshError(null);
+    
+    try {
+      await onRefresh();
+      setCooldown(COOLDOWN_PERIOD);
+    } catch (error) {
+      console.error('Error refreshing stats:', error);
+      setRefreshError(error instanceof Error ? error.message : 'Failed to refresh data');
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
   return (
     <div className="stats-container">
-      <div className="stats-title">Lord Staking Statistics</div>
+      <div className="stats-title flex justify-between items-center" style={{display: 'flex', alignItems: 'flex-start'}}>
+        <span>Lord Staking Statistics</span>
+        <div className="relative" style={{ position: 'relative', display: 'flex' }}>
+          <button 
+            className={`btn btn-secondary text-sm ${isRefreshing ? 'opacity-50' : ''} ${
+              cooldownActive ? 'cursor-not-allowed' : ''
+            }`}
+            onClick={handleRefresh}
+            disabled={isRefreshing || cooldownActive || loading}
+            style={{
+              marginLeft: '10px',
+              padding: '7px 10px',
+              fontSize: '12px',
+              position: 'relative',
+              overflow: 'hidden',
+            }}
+          >
+            {cooldownActive && (
+              <div 
+                className="absolute left-0 top-0 bg-gray-700 opacity-70 h-full"
+                style={{
+                  position: 'absolute',
+                  left: 0,
+                  top: 0,
+                  bottom: 0,
+                  backgroundColor: 'rgba(45, 55, 72, 0.7)',
+                  transition: 'width 1s linear',
+                  zIndex: 1,
+                }}
+              ></div>
+            )}
+            
+            {isRefreshing ? (
+              <div className="flex items-center gap-2">
+                <span>Refreshing...</span>
+              </div>
+            ) : cooldownActive ? (
+              <div className="flex items-center gap-1">
+                <span>Wait {cooldown}s</span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-1">
+                <span>Refresh Data</span>
+              </div>
+            )}
+          </button>
+        </div>
+      </div>
+      
+      {refreshError && (
+        <div className="error-message mb-4" style={{ marginTop: '10px', padding: '8px', fontSize: '14px' }}>
+          Error refreshing data: {refreshError}
+        </div>
+      )}
       
       <div className="stats-grid">
         <div className="stat-card">
           <div className="stat-icon">😎</div>
           <div className="stat-content">
             <div className="stat-value">
-              {loading && stats.uniqueStakers === 0 ? (
+              {(loading || isRefreshing) && stats.uniqueStakers === 0 ? (
                 <div className="skeleton-value"></div>
               ) : (
                 stats.uniqueStakers || '--'
@@ -30,10 +119,17 @@ export function StakingStats({ stats, loading }: StakingStatsProps) {
           <div className="stat-icon">👑</div>
           <div className="stat-content">
             <div className="stat-value">
-              {loading && stats.totalStaked === 0 ? (
+              {(loading || isRefreshing) && stats.totalStaked === 0 ? (
                 <div className="skeleton-value"></div>
               ) : (
-                stats.totalStaked || '--'
+                <a
+                  href="https://app.roninchain.com/address/0xfb597d6fa6c08f5434e6ecf69114497343ae13dd?t=collectibles&p=1&ps=25"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="contract-link"
+                >
+                  {stats.totalStaked || '--'}
+                </a>
               )}
             </div>
             <div className="stat-label">Total Lords Staked</div>
@@ -44,7 +140,7 @@ export function StakingStats({ stats, loading }: StakingStatsProps) {
           <div className="stat-icon">⏱️</div>
           <div className="stat-content">
             <div className="stat-value">
-              {loading && stats.averageDuration === 0 ? (
+              {(loading || isRefreshing) && stats.averageDuration === 0 ? (
                 <div className="skeleton-value"></div>
               ) : (
                 stats.averageDuration || '--'

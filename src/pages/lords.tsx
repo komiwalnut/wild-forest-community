@@ -10,13 +10,15 @@ export default function Home() {
   const {
     stats,
     loading,
+    refreshing,
     error,
     filters,
     updateFilters,
     lords,
     species,
     rarities,
-    isFetchingMore
+    isFetchingMore,
+    refreshData
   } = useLordsData();
 
   return (
@@ -40,20 +42,21 @@ export default function Home() {
 
         <StakingStats 
           stats={stats} 
-          loading={loading} 
+          loading={loading || refreshing} 
+          onRefresh={refreshData}
         />
 
         <FilterControls 
           filters={filters} 
           updateFilters={updateFilters} 
-          loading={loading}
+          loading={loading || refreshing}
           species={species}
           rarities={rarities}
         />
 
         <LordsList 
           lords={lords} 
-          loading={loading} 
+          loading={loading || refreshing} 
           isFetchingMore={isFetchingMore} 
         />
       </Layout>
