@@ -2,6 +2,7 @@ import { GraphQLResponse } from '../types';
 
 const MARKETPLACE_API = 'https://marketplace-graphql.skymavis.com/graphql';
 const TOKEN_ADDRESS = '0xa1ce53b661be73bf9a5edd3f0087484f0e3e7363';
+const X_API_KEY = process.env.X_API_KEY;
 
 export async function fetchNFTs(size = 50, from = 0): Promise<GraphQLResponse> {
   const query = `
@@ -25,6 +26,7 @@ export async function fetchNFTs(size = 50, from = 0): Promise<GraphQLResponse> {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      'X-API-KEY': X_API_KEY || '',
     },
     body: JSON.stringify({ query }),
   });

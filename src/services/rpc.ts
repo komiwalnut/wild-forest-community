@@ -2,6 +2,7 @@ import { RPCResponse } from '../types';
 
 const RONIN_RPC = 'https://api.roninchain.com/rpc';
 const STAKING_CONTRACT = '0xfb597d6fa6c08f5434e6ecf69114497343ae13dd';
+const X_API_KEY = process.env.X_API_KEY;
 
 interface RPCPayload {
   method: string;
@@ -19,6 +20,7 @@ async function makeRpcCall(payload: RPCPayload, retries = 2): Promise<RPCRespons
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'X-API-KEY': X_API_KEY || '',
         },
         body: JSON.stringify(payload),
       });
