@@ -29,14 +29,12 @@ export function ParticipantsList({ participants, statistics, loading }: Particip
   if (loading) {
     return (
       <div className="card mb-6">
-        <div className="card-header">
-          <div className="stats-title">2. Participants & Raffle Power</div>
-          <p className="text-sm text-light-alt mt-1">
-            Each participant&apos;s raffle power is based on their staked Lords. Higher raffle power means better chances of winning.
-          </p>
-        </div>
+        <div className="stats-title">2. Participants & Raffle Power</div>
+        <p className="text-sm text-light-alt mt-1">
+          Each participant&apos;s raffle power is based on their staked Lords. Higher raffle power means better chances of winning.
+        </p>
         
-        <div className="mt-4 flex justify-center items-center p-10">
+        <div className="mt-4 flex justify-center items-center p-10" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px' }}>
           <div className="inline-spinner"></div>
           <span className="ml-3">Loading participants data...</span>
         </div>
