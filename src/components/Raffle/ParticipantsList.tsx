@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Participant, ParticipantsListProps } from '../../types';
 
-export function ParticipantsList({ participants, statistics, loading }: ParticipantsListProps) {
+export function ParticipantsList({ participants, statistics }: ParticipantsListProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredParticipants, setFilteredParticipants] = useState<Participant[]>(participants);
@@ -25,22 +25,6 @@ export function ParticipantsList({ participants, statistics, loading }: Particip
   const currentParticipants = filteredParticipants.slice(indexOfFirstItem, indexOfLastItem);
   
   const totalPages = Math.ceil(filteredParticipants.length / itemsPerPage);
-  
-  if (loading) {
-    return (
-      <div className="card mb-6">
-        <div className="stats-title">2. Participants & Raffle Power</div>
-        <p className="text-sm text-light-alt mt-1">
-          Each participant&apos;s raffle power is based on their staked Lords. Higher raffle power means better chances of winning.
-        </p>
-        
-        <div className="mt-4 flex justify-center items-center p-10" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px' }}>
-          <div className="inline-spinner"></div>
-          <span className="ml-3">Loading participants data...</span>
-        </div>
-      </div>
-    );
-  }
   
   return (
     <div className="card mb-6">

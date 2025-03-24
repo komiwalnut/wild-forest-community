@@ -71,7 +71,6 @@ export default function RafflePage() {
         <ParticipantsList 
           participants={participants}
           statistics={statistics}
-          loading={loading}
         />
         
         <DrawWinners 

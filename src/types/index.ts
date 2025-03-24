@@ -117,7 +117,6 @@ export interface ValidationInfo {
 export interface ParticipantsListProps {
   participants: Participant[];
   statistics: RaffleStats;
-  loading: boolean;
 }
 
 export interface AddressInputProps {
