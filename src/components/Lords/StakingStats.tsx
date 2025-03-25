@@ -8,6 +8,12 @@ export function StakingStats({ stats, loading, onRefresh }: StakingStatsProps) {
   const [refreshError, setRefreshError] = useState<string | null>(null);
   const [cooldown, setCooldown] = useState(0);
   const [cooldownActive, setCooldownActive] = useState(false);
+  const [contractBalance, setContractBalance] = useState<number | null>(null);
+  const [isLoadingBalance, setIsLoadingBalance] = useState(false);
+
+  useEffect(() => {
+    fetchContractBalance();
+  }, []);
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
@@ -26,6 +32,26 @@ export function StakingStats({ stats, loading, onRefresh }: StakingStatsProps) {
     };
   }, [cooldown, cooldownActive]);
 
+  const fetchContractBalance = async () => {
+    setIsLoadingBalance(true);
+    try {
+      const response = await fetch('/api/contract-balance');
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch contract data');
+      }
+      
+      const data = await response.json();
+      if (data?.success && data?.stakedCount) {
+        setContractBalance(parseInt(data.stakedCount));
+      }
+    } catch (error) {
+      console.error('Error fetching contract balance:', error);
+    } finally {
+      setIsLoadingBalance(false);
+    }
+  };
+
   const handleRefresh = async () => {
     if (isRefreshing || cooldownActive || !onRefresh) return;
     
@@ -35,6 +61,7 @@ export function StakingStats({ stats, loading, onRefresh }: StakingStatsProps) {
     try {
       await onRefresh();
       setCooldown(COOLDOWN_PERIOD);
+      fetchContractBalance();
     } catch (error) {
       console.error('Error refreshing stats:', error);
       setRefreshError(error instanceof Error ? error.message : 'Failed to refresh data');
@@ -43,54 +70,62 @@ export function StakingStats({ stats, loading, onRefresh }: StakingStatsProps) {
     }
   };
 
+  const isUpToDate = contractBalance !== null && stats.totalStaked === contractBalance;
+
   return (
     <div className="stats-container">
       <div className="stats-title flex justify-between items-center" style={{display: 'flex', alignItems: 'flex-start'}}>
         <span>Lord Staking Statistics</span>
         <div className="relative" style={{ position: 'relative', display: 'flex' }}>
-          <button 
-            className={`btn btn-secondary text-sm ${isRefreshing ? 'opacity-50' : ''} ${
-              cooldownActive ? 'cursor-not-allowed' : ''
-            }`}
-            onClick={handleRefresh}
-            disabled={isRefreshing || cooldownActive || loading}
-            style={{
-              marginLeft: '10px',
-              padding: '7px 10px',
-              fontSize: '12px',
-              position: 'relative',
-              overflow: 'hidden',
-            }}
-          >
-            {cooldownActive && (
-              <div 
-                className="absolute left-0 top-0 bg-gray-700 opacity-70 h-full"
-                style={{
-                  position: 'absolute',
-                  left: 0,
-                  top: 0,
-                  bottom: 0,
-                  backgroundColor: 'rgba(45, 55, 72, 0.7)',
-                  transition: 'width 1s linear',
-                  zIndex: 1,
-                }}
-              ></div>
-            )}
-            
-            {isRefreshing ? (
-              <div className="flex items-center gap-2">
-                <span>Refreshing...</span>
-              </div>
-            ) : cooldownActive ? (
-              <div className="flex items-center gap-1">
-                <span>Wait {cooldown}s</span>
-              </div>
-            ) : (
-              <div className="flex items-center gap-1">
-                <span>Refresh Data</span>
-              </div>
-            )}
-          </button>
+          {!isUpToDate && (
+            <button 
+              className={`btn btn-secondary text-sm ${isRefreshing ? 'opacity-50' : ''} ${
+                cooldownActive ? 'cursor-not-allowed' : ''
+              }`}
+              onClick={handleRefresh}
+              disabled={isRefreshing || cooldownActive || loading || isLoadingBalance}
+              style={{
+                marginLeft: '10px',
+                padding: '7px 10px',
+                fontSize: '12px',
+                position: 'relative',
+                overflow: 'hidden',
+              }}
+            >
+              {cooldownActive && (
+                <div 
+                  className="absolute left-0 top-0 bg-gray-700 opacity-70 h-full"
+                  style={{
+                    position: 'absolute',
+                    left: 0,
+                    top: 0,
+                    bottom: 0,
+                    backgroundColor: 'rgba(45, 55, 72, 0.7)',
+                    transition: 'width 1s linear',
+                    zIndex: 1,
+                  }}
+                ></div>
+              )}
+              
+              {isRefreshing ? (
+                <div className="flex items-center gap-2">
+                  <span>Refreshing...</span>
+                </div>
+              ) : isLoadingBalance ? (
+                <div className="flex items-center gap-1">
+                  <span>Checking...</span>
+                </div>
+              ) : cooldownActive ? (
+                <div className="flex items-center gap-1">
+                  <span>Wait {cooldown}s</span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-1">
+                  <span>Refresh Data</span>
+                </div>
+              )}
+            </button>
+          )}
         </div>
       </div>
       
