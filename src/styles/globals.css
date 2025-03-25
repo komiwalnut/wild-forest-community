@@ -1103,3 +1103,18 @@ select::-ms-expand {
     opacity: 0.6;
   }
 }
+
+.sortable-header {
+  position: relative;
+  padding-right: 1.5rem;
+  transition: background-color 0.2s;
+}
+
+.sortable-header:hover {
+  background-color: rgba(45, 130, 183, 0.1);
+}
+
+.sortable-header span:not(.ml-1) {
+  color: var(--color-light-alt);
+  opacity: 0.6;
+}

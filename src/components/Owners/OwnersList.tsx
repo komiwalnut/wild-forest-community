@@ -1,14 +1,68 @@
 import React, { useState } from 'react';
 import { OwnersListProps } from '../../types/index'
+import { exportToCsv } from '../../utils/exportToCsv';
 
 export function OwnersList({ owners, loading, searchTerm, setSearchTerm }: OwnersListProps) {
     const [currentPage, setCurrentPage] = useState(1);
+    const [sortByTotalLords, setSortByTotalLords] = useState<'asc' | 'desc'>('desc');
+    const [sortByRafflePower, setSortByRafflePower] = useState<'asc' | 'desc'>('desc');
+    const [activeSortField, setActiveSortField] = useState<'totalLords' | 'rafflePower'>('totalLords');
     const itemsPerPage = 20;
     
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-    const currentOwners = owners.slice(indexOfFirstItem, indexOfLastItem);
+    
+    const sortedOwners = [...owners].sort((a, b) => {
+      if (activeSortField === 'totalLords') {
+        if (sortByTotalLords === 'desc') {
+          return b.totalLords - a.totalLords;
+        } else {
+          return a.totalLords - b.totalLords;
+        }
+      } else {
+        if (sortByRafflePower === 'desc') {
+          return b.rafflePower - a.rafflePower;
+        } else {
+          return a.rafflePower - b.rafflePower;
+        }
+      }
+    });
+    
+    const currentOwners = sortedOwners.slice(indexOfFirstItem, indexOfLastItem);
     const totalPages = Math.ceil(owners.length / itemsPerPage);
+    
+    const handleExport = () => {
+      if (!owners || owners.length === 0) {
+        alert('No data available to export');
+        return;
+      }
+
+      const exportData = owners.map(owner => ({
+        Address: owner.address,
+        TotalLords: owner.totalLords,
+        Rare: owner.rare,
+        Epic: owner.epic,
+        Legendary: owner.legendary,
+        Mystic: owner.mystic,
+        StakedLords: owner.staked,
+        RafflePower: owner.rafflePower
+      }));
+
+      const date = new Date().toISOString().split('T')[0];
+      const filename = `wild-forest-owners-${date}.csv`;
+      
+      exportToCsv(exportData, filename);
+    };
+    
+    const toggleSortTotalLords = () => {
+      setSortByTotalLords(sortByTotalLords === 'asc' ? 'desc' : 'asc');
+      setActiveSortField('totalLords');
+    };
+    
+    const toggleSortRafflePower = () => {
+      setSortByRafflePower(sortByRafflePower === 'asc' ? 'desc' : 'asc');
+      setActiveSortField('rafflePower');
+    };
     
     const renderHeader = () => (
       <div className="card-header">
@@ -28,6 +82,14 @@ export function OwnersList({ owners, loading, searchTerm, setSearchTerm }: Owner
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
+            
+            <button
+              className="btn btn-secondary export-btn mt-2 md:mt-0 md:ml-2"
+              onClick={handleExport}
+              disabled={loading || owners.length === 0}
+            >
+              Export CSV
+            </button>
           </div>
         </div>
       </div>
@@ -93,13 +155,19 @@ export function OwnersList({ owners, loading, searchTerm, setSearchTerm }: Owner
             <thead>
               <tr>
                 <th>Owner Address</th>
-                <th>Total Lords</th>
+                <th onClick={toggleSortTotalLords} style={{ cursor: 'pointer' }} className="sortable-header">
+                  Total Lords
+                  <span className="ml-1">{activeSortField === 'totalLords' ? (sortByTotalLords === 'desc' ? '▼' : '▲') : '▽'}</span>
+                </th>
                 <th className="raffle staked rare">Rare</th>
                 <th className="raffle staked epic">Epic</th>
                 <th className="raffle staked legendary">Legendary</th>
                 <th className="raffle staked mystic">Mystic</th>
                 <th>Staked Lords</th>
-                <th className="raffle power">Raffle Power</th>
+                <th className="raffle power sortable-header" onClick={toggleSortRafflePower} style={{ cursor: 'pointer' }}>
+                  Raffle Power
+                  <span className="ml-1">{activeSortField === 'rafflePower' ? (sortByRafflePower === 'desc' ? '▼' : '▲') : '▽'}</span>
+                </th>
               </tr>
             </thead>
             <tbody>

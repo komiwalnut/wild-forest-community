@@ -2,11 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Participant, ParticipantsListProps } from '../../types';
 
 export function ParticipantsList({ participants, statistics }: ParticipantsListProps) {
-  const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredParticipants, setFilteredParticipants] = useState<Participant[]>(participants);
-  
-  const itemsPerPage = 20;
+  const [sortByPower, setSortByPower] = useState<'asc' | 'desc'>('desc');
   
   useEffect(() => {
     if (searchTerm === '') {
@@ -17,20 +15,25 @@ export function ParticipantsList({ participants, statistics }: ParticipantsListP
       );
       setFilteredParticipants(filtered);
     }
-    setCurrentPage(1);
   }, [searchTerm, participants]);
   
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentParticipants = filteredParticipants.slice(indexOfFirstItem, indexOfLastItem);
+  const toggleSortPower = () => {
+    setSortByPower(sortByPower === 'asc' ? 'desc' : 'asc');
+  };
   
-  const totalPages = Math.ceil(filteredParticipants.length / itemsPerPage);
+  const sortedParticipants = [...filteredParticipants].sort((a, b) => {
+    if (sortByPower === 'desc') {
+      return b.rafflePower - a.rafflePower;
+    } else {
+      return a.rafflePower - b.rafflePower;
+    }
+  });
   
   return (
     <div className="card mb-6">
       <div className="stats-title">2. Participants & Raffle Power</div>
       <p className="text-sm text-light-alt mt-1">
-        Each participant&apos;s raffle power is based on their staked Lords. Higher raffle power means better chances of winning.
+        Each participant&#39;s raffle power is based on their staked Lords. Higher raffle power means better chances of winning.
       </p>
       
       <div className="participant-controls">
@@ -66,114 +69,81 @@ export function ParticipantsList({ participants, statistics }: ParticipantsListP
       </div>
         
       <div className="overflow-x-auto">
-        <table className="data-table">
-          <thead>
-            <tr>
-              <th className="text-left">Address</th>
-              <th>Raffle Power</th>
-              <th>Win Chance</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {currentParticipants.length > 0 ? (
-              currentParticipants.map((participant) => (
-                <tr key={participant.address} className={participant.status === 'Eligible' ? 'staked-row' : ''}>
-                  <td className="text-left">
-                    <a
-                      href={`https://marketplace.roninchain.com/account/${participant.address}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="contract-link"
-                    >
-                      {participant.address}
-                    </a>
-                  </td>
-                  <td>
-                    {participant.rafflePower > 0 ? participant.rafflePower.toLocaleString() : 'No Raffle Power'}
-                  </td>
-                  <td>
-                    {participant.status === 'Eligible' ? 
-                      (() => {
-                        const formatted = participant.winChance.toFixed(2);
+        <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
+          <table className="data-table">
+            <thead style={{ position: 'sticky', top: 0, background: '#2d3732', zIndex: 1 }}>
+              <tr>
+                <th className="text-left">Address</th>
+                <th onClick={toggleSortPower} style={{ cursor: 'pointer' }} className="sortable-header">
+                  Raffle Power
+                  <span className="ml-1">{sortByPower === 'desc' ? '▼' : '▲'}</span>
+                </th>
+                <th>Win Chance</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {sortedParticipants.length > 0 ? (
+                sortedParticipants.map((participant) => (
+                  <tr key={participant.address} className={participant.status === 'Eligible' ? 'staked-row' : ''}>
+                    <td className="text-left">
+                      <a
+                        href={`https://marketplace.roninchain.com/account/${participant.address}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="contract-link"
+                      >
+                        {participant.address}
+                      </a>
+                    </td>
+                    <td>
+                      {participant.rafflePower > 0 ? participant.rafflePower.toLocaleString() : 'No Raffle Power'}
+                    </td>
+                    <td>
+                      {participant.status === 'Eligible' ? 
+                        (() => {
+                          const formatted = participant.winChance.toFixed(2);
 
-                        if (formatted === '0.00') {
-                          let precision = 3;
-                          let result;
+                          if (formatted === '0.00') {
+                            let precision = 3;
+                            let result;
 
-                          while (precision <= 8) {
-                            result = participant.winChance.toFixed(precision);
-                            if (result !== '0.' + '0'.repeat(precision)) {
-                              return result + '%';
+                            while (precision <= 8) {
+                              result = participant.winChance.toFixed(precision);
+                              if (result !== '0.' + '0'.repeat(precision)) {
+                                return result + '%';
+                              }
+                              precision++;
                             }
-                            precision++;
-                          }
 
-                          return participant.winChance < 0.00000001 ? 
-                            participant.winChance.toExponential(2) + '%' : 
-                            participant.winChance.toFixed(8) + '%';
-                        }
-                        
-                        return formatted + '%';
-                      })() : 
-                      '-'
-                    }
-                  </td>
-                  <td>
-                    <span className={`status-badge ${participant.status === 'Eligible' ? 'staked' : 'not-staked'}`}>
-                      {participant.status}
-                    </span>
+                            return participant.winChance < 0.00000001 ? 
+                              participant.winChance.toExponential(2) + '%' : 
+                              participant.winChance.toFixed(8) + '%';
+                          }
+                          
+                          return formatted + '%';
+                        })() : 
+                        '-'
+                      }
+                    </td>
+                    <td>
+                      <span className={`status-badge ${participant.status === 'Eligible' ? 'staked' : 'not-staked'}`}>
+                        {participant.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={4} className="text-center py-8">
+                    {participants.length > 0 ? 'No matching addresses found' : 'No addresses added yet'}
                   </td>
                 </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan={4} className="text-center py-8">
-                  {participants.length > 0 ? 'No matching addresses found' : 'No addresses added yet'}
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-        
-      {totalPages > 1 && (
-        <div className="pagination mt-4">
-          <button 
-            className="page-control" 
-            onClick={() => setCurrentPage(1)}
-            disabled={currentPage === 1}
-          >
-            1
-          </button>
-          <button 
-            className="page-control" 
-            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-            disabled={currentPage === 1}
-          >
-            &larr;
-          </button>
-          
-          <div className="page-info">
-            {currentPage}
-          </div>
-          
-          <button 
-            className="page-control" 
-            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-            disabled={currentPage === totalPages}
-          >
-            &rarr;
-          </button>
-          <button 
-            className="page-control" 
-            onClick={() => setCurrentPage(totalPages)}
-            disabled={currentPage === totalPages}
-          >
-            {totalPages}
-          </button>
+              )}
+            </tbody>
+          </table>
         </div>
-      )}
+      </div>
     </div>
   );
 }
