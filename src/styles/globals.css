@@ -1149,8 +1149,10 @@ select::-ms-expand {
   border-radius: 0.5rem;
   overflow: hidden;
   user-select: none;
-  touch-action: none;
+  touch-action: pan-x pan-y;
   contain: strict;
+  overscroll-behavior: none;
+  -webkit-overscroll-behavior: none;
 }
 
 .stakers-map-canvas * {
