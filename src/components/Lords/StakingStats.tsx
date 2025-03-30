@@ -74,7 +74,7 @@ export function StakingStats({ stats, loading, onRefresh }: StakingStatsProps) {
 
   return (
     <div className="stats-container">
-      <div className="stats-title flex justify-between items-center" style={{display: 'flex', alignItems: 'flex-start'}}>
+      <div className="stats-title flex justify-between items-center" style={{display: 'flex', alignItems: 'stretch'}}>
         <span>Lord Staking Statistics</span>
         <div className="relative" style={{ position: 'relative', display: 'flex' }}>
           {!isUpToDate && (
@@ -126,6 +126,9 @@ export function StakingStats({ stats, loading, onRefresh }: StakingStatsProps) {
               )}
             </button>
           )}
+          <div style={{ display: 'flex', fontSize: 14, alignItems: 'center', color: 'orange', marginLeft: 6 }}>
+            (Updates every UTC+10)
+          </div>
         </div>
       </div>
       
