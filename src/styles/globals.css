@@ -626,6 +626,24 @@ footer {
     width: 100%;
     justify-content: flex-end;
   }
+
+  .stakers-map-canvas {
+    height: 500px !important;
+  }
+  
+  .staker-info-panel.top-corner {
+    top: 80px;
+    right: 10px;
+    width: 300px;
+  }
+  
+  div[style*="flex-direction: row"] {
+    flex-direction: column !important;
+  }
+  
+  div[style*="flex:"] {
+    flex: 1 !important;
+  }
 }
 
 .filter-section {
@@ -1117,4 +1135,364 @@ select::-ms-expand {
 .sortable-header span:not(.ml-1) {
   color: var(--color-light-alt);
   opacity: 0.6;
+}
+
+.stakers-map-container {
+  width: 100%;
+}
+
+.stakers-map-canvas {
+  height: 710px !important;
+  position: relative;
+  border: 1px solid #3a4940;
+  background-color: #0f172a;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  user-select: none;
+  touch-action: none;
+  contain: strict;
+}
+
+.stakers-map-canvas * {
+  pointer-events: none;
+}
+
+.stakers-map-canvas .staker-info-panel,
+.stakers-map-canvas .staker-info-panel *,
+.stakers-map-canvas [role="button"],
+.stakers-map-canvas button {
+  pointer-events: auto;
+}
+
+.stakers-map-canvas div[style*="border-radius: 50%"] {
+  pointer-events: auto;
+}
+
+.staker-details-card {
+  height: 100%;
+  max-height: calc(100vh - 250px);
+  overflow-y: auto;
+}
+
+.lord-ids-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.lord-id-badge, .nft-badge {
+  user-select: none;
+}
+
+.lord-id-badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  background-color: rgba(45, 55, 72, 0.5);
+  transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.lord-id-badge:hover {
+  transform: translateY(-2px);
+}
+
+.lord-id-badge.staked {
+  background-color: rgba(45, 130, 183, 0.15);
+}
+
+.lord-id-badge.rare {
+  color: #2c90ac;
+  border: 1px solid rgba(44, 144, 172, 0.3);
+}
+
+.lord-id-badge.epic {
+  color: #6654f1;
+  border: 1px solid rgba(102, 84, 241, 0.3);
+}
+
+.lord-id-badge.legendary {
+  color: #eec315;
+  border: 1px solid rgba(238, 195, 21, 0.3);
+}
+
+.lord-id-badge.mystic {
+  color: #40f1fe;
+  border: 1px solid rgba(64, 241, 254, 0.3);
+}
+
+.lord-id-badge.staked.rare {
+  background-color: rgba(44, 144, 172, 0.1);
+}
+
+.lord-id-badge.staked.epic {
+  background-color: rgba(102, 84, 241, 0.1);
+}
+
+.lord-id-badge.staked.legendary {
+  background-color: rgba(238, 195, 21, 0.1);
+}
+
+.lord-id-badge.staked.mystic {
+  background-color: rgba(64, 241, 254, 0.1);
+}
+
+.staker-info-panel {
+  position: absolute;
+  top: 50%;
+  right: 3%;
+  transform: translateY(-50%);
+  width: 360px;
+  background-color: rgba(15, 23, 42, 0.9);
+  border-radius: 10px;
+  border: 1px solid rgba(64, 241, 254, 0.2);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  color: #fff;
+  z-index: 100;
+  overflow: hidden;
+  backdrop-filter: blur(5px);
+  max-height: 90%;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(64, 241, 254, 0.3) rgba(15, 23, 42, 0.3);
+  user-select: text;
+}
+
+.staker-info-panel.top-corner {
+  top: 1rem;
+  right: 1rem;
+  transform: none;
+  max-height: calc(100% - 100px);
+}
+
+.close-button {
+  background: transparent;
+  border: none;
+  color: #eec315;
+  cursor: pointer;
+  font-size: 16px;
+  transition: color 0.2s;
+}
+
+.close-button:hover {
+  color: #f59c1a;
+}
+
+.staker-address-link {
+  display: block;
+  padding: 8px 16px;
+  font-size: 12px;
+  font-family: monospace;
+  color: #f59c1a;
+  text-decoration: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.staker-address-link:hover {
+  text-decoration: underline;
+}
+
+.staker-info-content {
+  padding: 12px 16px 0px 16px;
+}
+
+.staker-total-info {
+  font-size: 13px;
+  margin-bottom: 12px;
+}
+
+.rarity-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.rarity-grid > div {
+  border-radius: 6px;
+  padding: 8px 4px;
+  text-align: center;
+}
+
+.rare-box {
+  background-color: rgba(44, 144, 172, 0.2);
+}
+
+.epic-box {
+  background-color: rgba(102, 84, 241, 0.2);
+}
+
+.legendary-box {
+  background-color: rgba(238, 195, 21, 0.2);
+}
+
+.mystic-box {
+  background-color: rgba(64, 241, 254, 0.2);
+}
+
+.count {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.rare-box .count {
+  color: #2c90ac;
+}
+
+.epic-box .count {
+  color: #6654f1;
+}
+
+.legendary-box .count {
+  color: #eec315;
+}
+
+.mystic-box .count {
+  color: #40f1fe;
+}
+
+.label {
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+.staked-info {
+  margin-bottom: 16px;
+}
+
+.staked-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  font-size: 13px;
+}
+
+.staked-progress-bar {
+  height: 6px;
+  background-color: rgba(0, 0, 0, 0.3);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.staked-progress {
+  height: 100%;
+  background-color: #f59c1a;
+  border-radius: 3px;
+}
+
+.lords-section {
+  margin-bottom: 16px;
+}
+
+.lords-section h4 {
+  margin: 0 0 8px 0;
+  font-size: 14px;
+  font-weight: 600;
+  padding-bottom: 4px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.rare-section h4 {
+  color: #2c90ac;
+}
+
+.epic-section h4 {
+  color: #6654f1;
+}
+
+.legendary-section h4 {
+  color: #eec315;
+}
+
+.mystic-section h4 {
+  color: #40f1fe;
+}
+
+.maps-lords-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.nft-badge {
+  display: inline-block;
+  padding: 3px 6px;
+  border-radius: 4px;
+  font-size: 12px;
+  text-decoration: none;
+  transition: transform 0.2s;
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+.nft-badge:hover {
+  transform: translateY(-2px);
+}
+
+.rare-section .nft-badge {
+  color: #2c90ac;
+  border: 1px solid rgba(44, 144, 172, 0.3);
+}
+
+.epic-section .nft-badge {
+  color: #6654f1;
+  border: 1px solid rgba(102, 84, 241, 0.3);
+}
+
+.legendary-section .nft-badge {
+  color: #eec315;
+  border: 1px solid rgba(238, 195, 21, 0.3);
+}
+
+.mystic-section .nft-badge {
+  color: #40f1fe;
+  border: 1px solid rgba(64, 241, 254, 0.3);
+}
+
+.zoom-controls {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.zoom-controls button {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: bold;
+  padding: 0;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.3);
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(64, 241, 254, 0.3);
+  border-radius: 10px;
+  transition: background 0.2s;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(64, 241, 254, 0.5);
+}
+
+.map-draggable-area {
+  cursor: grab;
+  user-select: none;
+}
+
+.map-draggable-area:active {
+  cursor: grabbing;
 }
