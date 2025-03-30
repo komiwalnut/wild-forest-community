@@ -14,6 +14,11 @@ export function StakersMap({ owners, loading, onSelectStaker, selectedStaker }: 
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [mapInitialized, setMapInitialized] = useState(false);
 
+  const [draggedBubbleIndex, setDraggedBubbleIndex] = useState<number | null>(null);
+  const [isDraggingBubble, setIsDraggingBubble] = useState(false);
+  const [bubbleDragStart, setBubbleDragStart] = useState({ x: 0, y: 0 });
+  const [originalBubblePosition, setOriginalBubblePosition] = useState({ x: 0, y: 0 });
+
   useEffect(() => {
     const stakers = owners.filter(owner => owner.staked > 0);
     setActualStakers(stakers);
@@ -27,23 +32,22 @@ export function StakersMap({ owners, loading, onSelectStaker, selectedStaker }: 
     const containerHeight = containerRef.current.clientHeight;
 
     const totalBubbles = actualStakers.length;
-
-    const bubbleAreaRatio = 0.55; 
+    const bubbleAreaRatio = 1.1; 
 
     const containerAspect = containerWidth / containerHeight;
 
-    let baseWidth = containerWidth;
-    let baseHeight = containerHeight;
+    let baseWidth = containerWidth * 1.15;
+    let baseHeight = containerHeight * 1.15;
 
     if (totalBubbles > 20) {
-      const scaleFactor = Math.sqrt(totalBubbles / 40) * bubbleAreaRatio;
+      const scaleFactor = Math.sqrt(totalBubbles / 20) * (bubbleAreaRatio * 1.2);
       baseWidth = containerWidth * scaleFactor;
       baseHeight = baseWidth / containerAspect;
 
-      baseWidth = Math.max(baseWidth, containerWidth * 0.95);
-      baseHeight = Math.max(baseHeight, containerHeight * 0.95);
+      baseWidth = Math.max(baseWidth, containerWidth * 1.25);
+      baseHeight = Math.max(baseHeight, containerHeight * 1.25);
 
-      const maxDimensionFactor = Math.min(3, Math.max(1.2, Math.sqrt(totalBubbles / 100)));
+      const maxDimensionFactor = Math.min(8, Math.max(3.0, Math.sqrt(totalBubbles / 50)));
       baseWidth = Math.min(baseWidth, containerWidth * maxDimensionFactor);
       baseHeight = Math.min(baseHeight, containerHeight * maxDimensionFactor);
     }
@@ -53,6 +57,34 @@ export function StakersMap({ owners, loading, onSelectStaker, selectedStaker }: 
       height: baseHeight
     });
   }, [actualStakers, containerRef]);
+
+  const calculateMinimumZoom = useCallback(() => {
+    if (!containerRef.current || bubbles.length === 0) return 0.4;
+    
+    const containerWidth = containerRef.current.clientWidth;
+    const containerHeight = containerRef.current.clientHeight;
+
+    const baseMin = Math.min(
+      (containerWidth * 0.8) / dimensions.width,
+      (containerHeight * 0.8) / dimensions.height
+    );
+
+    let adjustedMin = baseMin;
+    
+    if (bubbles.length > 500) {
+      adjustedMin = Math.min(baseMin, 0.25);
+    } else if (bubbles.length > 200) {
+      adjustedMin = Math.min(baseMin, 0.3);
+    } else if (bubbles.length > 100) {
+      adjustedMin = Math.min(baseMin, 0.4);
+    } else if (bubbles.length > 50) {
+      adjustedMin = Math.min(baseMin, 0.5);
+    } else {
+      adjustedMin = Math.min(Math.max(baseMin, 0.6), 0.8);
+    }
+
+    return Math.max(adjustedMin, 0.2);
+  }, [dimensions, bubbles.length]);
 
   const calculateIdealZoom = useCallback((bubbleArray: Bubble[]) => {
     if (!containerRef.current || bubbleArray.length === 0) return 1;
@@ -65,10 +97,21 @@ export function StakersMap({ owners, loading, onSelectStaker, selectedStaker }: 
 
     let idealZoom = Math.min(zoomX, zoomY) * 0.95;
 
-    idealZoom = Math.min(Math.max(idealZoom, 0.6), 1);
+    const bubbleCount = bubbleArray.length;
+    if (bubbleCount > 300) {
+      idealZoom = Math.min(idealZoom, 0.85);
+    } else if (bubbleCount > 100) {
+      idealZoom = Math.min(idealZoom, 0.9);
+    }
+
+    const minZoom = calculateMinimumZoom();
+
+    const maxZoom = Math.min(1.2, dimensions.width / (containerWidth || 1000));
+
+    idealZoom = Math.min(Math.max(idealZoom, minZoom), maxZoom);
     
     return idealZoom;
-  }, [dimensions.width, dimensions.height]);
+  }, [dimensions.width, dimensions.height, calculateMinimumZoom]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -87,6 +130,23 @@ export function StakersMap({ owners, loading, onSelectStaker, selectedStaker }: 
     }
   }, [actualStakers, calculateDimensions]);
 
+  const checkOverlap = (bubble: Bubble, existingBubbles: Bubble[], skipIndex: number | null = null) => {
+    for (let i = 0; i < existingBubbles.length; i++) {
+      if (skipIndex !== null && skipIndex === i) continue;
+      
+      const existing = existingBubbles[i];
+      const dx = bubble.x - existing.x;
+      const dy = bubble.y - existing.y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      const minDistance = (bubble.radius + existing.radius) * 1.05;
+      
+      if (distance < minDistance) {
+        return { collides: true, with: i, distance, minDistance };
+      }
+    }
+    return { collides: false };
+  };
+
   useEffect(() => {
     if (actualStakers.length === 0 || dimensions.width === 0 || dimensions.height === 0) {
       return;
@@ -95,15 +155,28 @@ export function StakersMap({ owners, loading, onSelectStaker, selectedStaker }: 
     const maxStakedLords = Math.max(1, ...actualStakers.map(o => o.staked || 1));
 
     let minRadius, maxRadius;
-    if (actualStakers.length > 100) {
-      minRadius = 20;
-      maxRadius = 60;
-    } else if (actualStakers.length > 50) {
-      minRadius = 25;
-      maxRadius = 70;
+    
+    const bubbleCount = actualStakers.length;
+    const densityScaleFactor = Math.pow(bubbleCount / 100, 0.25); 
+
+    if (bubbleCount > 800) {
+      minRadius = 28 / densityScaleFactor;
+      maxRadius = 85 / densityScaleFactor;
+    } else if (bubbleCount > 500) {
+      minRadius = 32 / densityScaleFactor;
+      maxRadius = 92 / densityScaleFactor;
+    } else if (bubbleCount > 300) {
+      minRadius = 35 / densityScaleFactor;
+      maxRadius = 100 / densityScaleFactor;
+    } else if (bubbleCount > 150) {
+      minRadius = 40 / densityScaleFactor;
+      maxRadius = 110 / densityScaleFactor;
+    } else if (bubbleCount > 50) {
+      minRadius = 45 / densityScaleFactor;
+      maxRadius = 120 / densityScaleFactor;
     } else {
-      minRadius = 30;
-      maxRadius = 80;
+      minRadius = 50;
+      maxRadius = 130;
     }
 
     const containerScale = Math.min(
@@ -111,28 +184,13 @@ export function StakersMap({ owners, loading, onSelectStaker, selectedStaker }: 
       dimensions.height / (containerRef.current?.clientHeight || 800)
     );
     
-    minRadius = Math.max(15, minRadius * Math.sqrt(containerScale));
-    maxRadius = Math.max(35, maxRadius * Math.sqrt(containerScale));
+    minRadius = Math.max(18, minRadius * Math.sqrt(containerScale));
+    maxRadius = Math.max(40, maxRadius * Math.sqrt(containerScale));
 
-    const padding = Math.min(dimensions.width, dimensions.height) * 0.05;
-
+    const padding = Math.min(dimensions.width, dimensions.height) * 0.005;
     const usableWidth = dimensions.width - padding * 2;
     const usableHeight = dimensions.height - padding * 2;
 
-    const checkOverlap = (bubble: Bubble, existingBubbles: Bubble[]) => {
-      for (const existing of existingBubbles) {
-        const dx = bubble.x - existing.x;
-        const dy = bubble.y - existing.y;
-        const distance = Math.sqrt(dx * dx + dy * dy);
-        const minDistance = (bubble.radius + existing.radius) * 1.05;
-        
-        if (distance < minDistance) {
-          return true;
-        }
-      }
-      return false;
-    };
-    
     const generateBubbles = () => {
       const result: Bubble[] = [];
 
@@ -140,13 +198,13 @@ export function StakersMap({ owners, loading, onSelectStaker, selectedStaker }: 
         .sort((a, b) => b.staked - a.staked);
 
       const calculateRadius = (stakedCount: number) => {
-        const normalized = Math.sqrt(stakedCount / maxStakedLords);
+        const normalized = Math.pow(stakedCount / maxStakedLords, 0.3);
         return minRadius + normalized * (maxRadius - minRadius);
       };
 
       const avgStakedCount = actualStakers.reduce((sum, staker) => sum + staker.staked, 0) / actualStakers.length;
       const avgRadius = calculateRadius(avgStakedCount);
-      const cellSize = avgRadius * 2.1;
+      const cellSize = avgRadius * 1.5;
 
       const gridColumns = Math.floor(usableWidth / cellSize);
       const gridRows = Math.floor(usableHeight / cellSize);
@@ -155,13 +213,6 @@ export function StakersMap({ owners, loading, onSelectStaker, selectedStaker }: 
 
       for (let cellX = 0; cellX < gridColumns; cellX++) {
         for (let cellY = 0; cellY < gridRows; cellY++) {
-          const centerX = gridColumns / 2;
-          const centerY = gridRows / 2;
-          const distanceFromCenter = Math.sqrt(
-            Math.pow((cellX - centerX) / gridColumns, 2) + 
-            Math.pow((cellY - centerY) / gridRows, 2)
-          );
-          
           cellsToUse.push([cellX, cellY]);
         }
       }
@@ -204,9 +255,9 @@ export function StakersMap({ owners, loading, onSelectStaker, selectedStaker }: 
         while (!foundPosition && attempts < maxAttempts) {
           attempts++;
 
-          if (attempts < 100) {
+          if (attempts < 80) {
             [x, y] = findAvailableCell();
-          } else if (attempts < 200) {
+          } else if (attempts < 150) {
             const angle = Math.random() * Math.PI * 2;
             const distanceFromCenter = Math.random() * Math.random();
             x = padding + usableWidth/2 + Math.cos(angle) * (usableWidth/2) * distanceFromCenter;
@@ -236,7 +287,8 @@ export function StakersMap({ owners, loading, onSelectStaker, selectedStaker }: 
             radius
           };
 
-          foundPosition = !checkOverlap(bubbleData, result);
+          const overlapResult = checkOverlap(bubbleData, result);
+          foundPosition = !overlapResult.collides;
           
           if (foundPosition) {
             result.push(bubbleData);
@@ -278,15 +330,19 @@ export function StakersMap({ owners, loading, onSelectStaker, selectedStaker }: 
   };
 
   const handleZoomIn = () => {
+    const maxZoom = Math.min(1.5, dimensions.width / (containerRef.current?.clientWidth || 1000));
+    
     setZoomLevel(prev => {
-      const newZoom = Math.min(prev + 0.1, 1);
+      const newZoom = Math.min(prev + 0.1, maxZoom);
       return newZoom;
     });
   };
 
   const handleZoomOut = () => {
+    const minZoom = calculateMinimumZoom();
+    
     setZoomLevel(prev => {
-      const newZoom = Math.max(prev - 0.1, 0.3);
+      const newZoom = Math.max(prev - 0.1, minZoom);
       return newZoom;
     });
   };
@@ -316,17 +372,89 @@ export function StakersMap({ owners, loading, onSelectStaker, selectedStaker }: 
       return;
     }
     
-    setIsDragging(true);
-    setDragStart({ x: e.clientX, y: e.clientY });
-    e.preventDefault();
+    if (!isDraggingBubble) {
+      setIsDragging(true);
+      setDragStart({ x: e.clientX, y: e.clientY });
+      e.preventDefault();
+    }
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
-    if (isDragging) {
+    if (isDraggingBubble && draggedBubbleIndex !== null) {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      const dx = e.clientX - bubbleDragStart.x;
+      const dy = e.clientY - bubbleDragStart.y;
+
+      const speedFactor = 1.3 + (1 - zoomLevel) * 0.6;
+      
+      const newX = originalBubblePosition.x + (dx * speedFactor);
+      const newY = originalBubblePosition.y + (dy * speedFactor);
+      
+      const updatedBubbles = [...bubbles];
+      const draggedBubble = { ...updatedBubbles[draggedBubbleIndex] };
+      
+      const padding = Math.min(dimensions.width, dimensions.height) * 0.05;
+      
+      draggedBubble.x = Math.max(
+        padding + draggedBubble.radius, 
+        Math.min(dimensions.width - padding - draggedBubble.radius, newX)
+      );
+      draggedBubble.y = Math.max(
+        padding + draggedBubble.radius, 
+        Math.min(dimensions.height - padding - draggedBubble.radius, newY)
+      );
+      
+      for (let i = 0; i < updatedBubbles.length; i++) {
+        if (i === draggedBubbleIndex) continue;
+        
+        const otherBubble = updatedBubbles[i];
+        const dx = draggedBubble.x - otherBubble.x;
+        const dy = draggedBubble.y - otherBubble.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        const minDistance = (draggedBubble.radius + otherBubble.radius) * 1.05;
+        
+        if (distance < minDistance) {
+          const angle = Math.atan2(dy, dx);
+          const pushDistance = minDistance - distance;
+          
+          const otherBubbleCopy = { ...otherBubble };
+          otherBubbleCopy.x -= Math.cos(angle) * pushDistance * 0.5;
+          otherBubbleCopy.y -= Math.sin(angle) * pushDistance * 0.5;
+          
+          otherBubbleCopy.x = Math.max(
+            padding + otherBubbleCopy.radius, 
+            Math.min(dimensions.width - padding - otherBubbleCopy.radius, otherBubbleCopy.x)
+          );
+          otherBubbleCopy.y = Math.max(
+            padding + otherBubbleCopy.radius, 
+            Math.min(dimensions.height - padding - otherBubbleCopy.radius, otherBubbleCopy.y)
+          );
+          
+          updatedBubbles[i] = otherBubbleCopy;
+          
+          draggedBubble.x += Math.cos(angle) * pushDistance * 0.5;
+          draggedBubble.y += Math.sin(angle) * pushDistance * 0.5;
+          
+          draggedBubble.x = Math.max(
+            padding + draggedBubble.radius, 
+            Math.min(dimensions.width - padding - draggedBubble.radius, draggedBubble.x)
+          );
+          draggedBubble.y = Math.max(
+            padding + draggedBubble.radius, 
+            Math.min(dimensions.height - padding - draggedBubble.radius, draggedBubble.y)
+          );
+        }
+      }
+      
+      updatedBubbles[draggedBubbleIndex] = draggedBubble;
+      setBubbles(updatedBubbles);
+    } else if (isDragging) {
       const dx = e.clientX - dragStart.x;
       const dy = e.clientY - dragStart.y;
 
-      const speedFactor = 1 / zoomLevel;
+      const speedFactor = 1.3 + (1 - zoomLevel) * 0.6;
 
       let newX = mapPosition.x + (dx * speedFactor);
       let newY = mapPosition.y + (dy * speedFactor);
@@ -353,10 +481,24 @@ export function StakersMap({ owners, loading, onSelectStaker, selectedStaker }: 
 
   const handleMouseUp = () => {
     setIsDragging(false);
+    setIsDraggingBubble(false);
+    setDraggedBubbleIndex(null);
   };
 
   const handleMouseLeave = () => {
     setIsDragging(false);
+    setIsDraggingBubble(false);
+    setDraggedBubbleIndex(null);
+  };
+  
+  const handleBubbleMouseDown = (e: React.MouseEvent, index: number) => {
+    e.stopPropagation();
+    e.preventDefault();
+    
+    setIsDraggingBubble(true);
+    setDraggedBubbleIndex(index);
+    setBubbleDragStart({ x: e.clientX, y: e.clientY });
+    setOriginalBubblePosition({ x: bubbles[index].x, y: bubbles[index].y });
   };
 
   const maxStakedLords = actualStakers.length > 0 
@@ -386,7 +528,7 @@ export function StakersMap({ owners, loading, onSelectStaker, selectedStaker }: 
           backgroundColor: '#0f172a', 
           borderRadius: '0.5rem', 
           overflow: 'hidden', 
-          cursor: isDragging ? 'grabbing' : 'grab' 
+          cursor: isDragging ? 'grabbing' : isDraggingBubble ? 'grabbing' : 'grab' 
         }}
         onWheel={handleWheel}
         onMouseDown={handleMouseDown}
@@ -471,6 +613,7 @@ export function StakersMap({ owners, loading, onSelectStaker, selectedStaker }: 
               const bubbleColor = getBubbleColor(bubble.owner);
 
               const isSelected = selectedStaker?.address === bubble.owner.address;
+              const isDragged = index === draggedBubbleIndex;
               
               return (
                 <div
@@ -484,23 +627,35 @@ export function StakersMap({ owners, loading, onSelectStaker, selectedStaker }: 
                     borderRadius: '50%',
                     backgroundColor: isSelected 
                       ? 'rgba(245, 156, 26, 0.5)' 
+                      : isDragged
+                      ? 'rgba(245, 156, 26, 0.3)'
                       : `rgba(45, 130, 183, ${opacity})`,
                     border: isSelected 
                       ? '3px solid #f59c1a' 
+                      : isDragged
+                      ? '3px solid #f59c1a'  
                       : `2px solid ${bubbleColor}`,
-                    transform: isSelected ? 'scale(1.1)' : 'scale(1)',
-                    zIndex: isSelected ? 20 : bubble.owner.staked > maxStakedLords / 2 ? 10 : 1,
-                    transition: 'all 0.3s ease-in-out',
+                    transform: (isSelected || isDragged) ? 'scale(1.1)' : 'scale(1)',
+                    zIndex: (isSelected || isDragged) ? 20 : bubble.owner.staked > maxStakedLords / 2 ? 10 : 1,
+                    transition: isDragged ? 'none' : 'all 0.3s ease-in-out',
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    cursor: 'pointer',
+                    cursor: isDraggingBubble && index === draggedBubbleIndex ? 'grabbing' : 'pointer',
                     userSelect: 'none',
-                    boxShadow: isSelected ? '0 0 15px rgba(245, 156, 26, 0.5)' : 'none'
+                    boxShadow: (isSelected || isDragged) ? '0 0 15px rgba(245, 156, 26, 0.5)' : 'none'
                   }}
-                  onMouseDown={(e) => { e.stopPropagation(); }}
-                  onClick={(e) => { e.stopPropagation(); onSelectStaker(bubble.owner); }}
+                  onMouseDown={(e) => {
+                    e.stopPropagation();
+                    handleBubbleMouseDown(e, index);
+                  }}
+                  onClick={(e) => { 
+                    if (!isDraggingBubble) {
+                      e.stopPropagation(); 
+                      onSelectStaker(bubble.owner);
+                    }
+                  }}
                 >
                   <div style={{ 
                     fontSize: bubble.radius > 70 ? '1rem' : bubble.radius > 45 ? '0.85rem' : '0.75rem', 
