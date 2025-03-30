@@ -87,6 +87,30 @@ export interface OwnersListProps {
   setSearchTerm: (term: string) => void;
 }
 
+export interface StakersMapProps {
+  owners: OwnerData[];
+  loading: boolean;
+  onSelectStaker: (staker: OwnerData | null) => void;
+  selectedStaker: OwnerData | null;
+}
+
+export interface StakerInfoPanelProps {
+  staker: OwnerData;
+  onClose: () => void;
+}
+
+export interface StakerDetailsProps {
+  staker: OwnerData;
+  onClose: () => void;
+}
+
+export interface Bubble {
+  owner: OwnerData;
+  x: number;
+  y: number;
+  radius: number;
+}
+
 export interface Participant {
   address: string;
   rafflePower: number;
