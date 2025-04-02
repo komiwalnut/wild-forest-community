@@ -166,6 +166,38 @@ export interface WinnerCategory {
   winners: Winner[];
 }
 
+export interface LevelingDataEntry {
+  level: number;
+  rarity: string;
+  shards: {
+    toReachCurrent: number;
+    increaseFromPrev: number;
+    totalFromLvl1: number;
+  };
+  gold: {
+    toReachCurrent: number;
+    increaseFromPrev: number;
+    totalFromLvl1: number;
+  };
+}
+
+export interface LevelingData {
+  levelingData: LevelingDataEntry[];
+  rarityCaps: {
+    [key: string]: number;
+  };
+}
+
+export interface CalculationResult {
+  goldNeeded: number;
+  shardsNeeded: number;
+  description: string;
+}
+
+export interface ResultsTableProps {
+  results: CalculationResult[];
+}
+
 export type SortOption = 
   | 'durationHighToLow' 
   | 'durationLowToHigh' 
