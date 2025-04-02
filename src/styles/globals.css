@@ -226,7 +226,6 @@ body {
 .data-table {
   width: 100%;
   border-collapse: collapse;
-  margin-bottom: 1.5rem;
 }
 
 .data-table th,
