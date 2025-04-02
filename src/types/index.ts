@@ -198,6 +198,11 @@ export interface ResultsTableProps {
   results: CalculationResult[];
 }
 
+export interface LevelData {
+  levelingData: LevelingDataEntry[];
+  rarityCaps: Record<string, number>;
+}
+
 export type SortOption = 
   | 'durationHighToLow' 
   | 'durationLowToHigh' 
