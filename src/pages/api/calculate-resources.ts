@@ -1,49 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { getMasterCache } from '../../utils/redis';
-
-interface LevelingDataEntry {
-  level: number;
-  rarity: string;
-  shards: {
-    toReachCurrent: number;
-    increaseFromPrev: number;
-    totalFromLvl1: number;
-  };
-  gold: {
-    toReachCurrent: number;
-    increaseFromPrev: number;
-    totalFromLvl1: number;
-  };
-}
-
-interface LevelData {
-  levelingData: LevelingDataEntry[];
-  rarityCaps: { [key: string]: number };
-}
-
-interface ResourceResult {
-  goldNeeded: number;
-  shardsNeeded: number;
-}
-
-interface CalculationResult extends ResourceResult {
-  description: string;
-}
-
-interface RequestBody {
-  currentLevel?: number;
-  desiredLevel?: number;
-}
-
-interface ResponseData {
-  results: CalculationResult[];
-  metadata: {
-    validCurrentLevel: number;
-    validDesiredLevel: number;
-    currentRarity: string;
-    maxLevel: number;
-  };
-}
+import { LevelingDataEntry, LevelData, CalculationResult } from '../../types';
 
 export default async function handler(
   req: NextApiRequest,
@@ -55,8 +12,8 @@ export default async function handler(
     if (req.method !== 'POST') {
       return res.status(405).json({ error: 'Method not allowed' });
     }
-
-    const { currentLevel, desiredLevel } = req.body as RequestBody;
+    
+    const { currentLevel, desiredLevel } = req.body;
     
     if (currentLevel === undefined || desiredLevel === undefined) {
       return res.status(400).json({ 
@@ -64,19 +21,87 @@ export default async function handler(
         message: 'Both currentLevel and desiredLevel are required'
       });
     }
-
+    
     const levelData = await getMasterCache<LevelData>('unit_level');
     
-    if (!levelData || !levelData.levelingData || !levelData.rarityCaps) {
+    if (!levelData || !Array.isArray(levelData.levelingData) || !levelData.rarityCaps) {
       return res.status(404).json({ 
         error: 'Data not found',
-        message: 'Level data not found in cache' 
+        message: 'Level data not found in cache or has invalid format' 
+      });
+    }
+    
+    const maxLevel = Math.max(...Object.values(levelData.rarityCaps));
+
+    const validCurrentLevel = Math.max(1, Math.min(Math.abs(Number(currentLevel)), maxLevel - 1));
+    const validDesiredLevel = Math.max(validCurrentLevel + 1, Math.min(Math.abs(Number(desiredLevel)), maxLevel));
+
+    const currentRarity = determineRarity(levelData.rarityCaps, validCurrentLevel);
+    
+    const results: CalculationResult[] = [];
+
+    if (validCurrentLevel < validDesiredLevel) {
+      const resources = calculateResources(
+        levelData.levelingData,
+        validCurrentLevel,
+        validDesiredLevel
+      );
+      
+      results.push({
+        ...resources,
+        description: `Level ${validCurrentLevel} → ${validDesiredLevel}`
       });
     }
 
-    const results = calculateAllResults(levelData, currentLevel, desiredLevel);
+    const sortedRarities = getSortedRarities(levelData.rarityCaps);
+    const currentRarityIndex = sortedRarities.findIndex(r => r.name === currentRarity);
+    
+    for (let i = currentRarityIndex; i < sortedRarities.length; i++) {
+      const rarityCapLevel = sortedRarities[i].level;
 
-    return res.status(200).json(results);
+      if (rarityCapLevel <= validCurrentLevel) continue;
+
+      if (rarityCapLevel > validDesiredLevel) continue;
+
+      if (rarityCapLevel === validDesiredLevel) continue;
+      
+      const resources = calculateResources(
+        levelData.levelingData,
+        validCurrentLevel,
+        rarityCapLevel
+      );
+      
+      results.push({
+        ...resources,
+        description: `Max ${sortedRarities[i].name} (Level ${rarityCapLevel})`
+      });
+    }
+
+    const isMaxLevelCovered = results.some(r => r.description.includes(`(Level ${maxLevel})`));
+    
+    if (!isMaxLevelCovered && validDesiredLevel !== maxLevel && validCurrentLevel < maxLevel) {
+      const resources = calculateResources(
+        levelData.levelingData,
+        validCurrentLevel,
+        maxLevel
+      );
+      
+      results.push({
+        ...resources,
+        description: `Max Mystic Level (${maxLevel})`
+      });
+    }
+    
+    return res.status(200).json({
+      results,
+      metadata: {
+        validCurrentLevel,
+        validDesiredLevel,
+        currentRarity,
+        maxLevel,
+        rarityCaps: levelData.rarityCaps
+      }
+    });
     
   } catch (error) {
     console.error('API Error:', error);
@@ -88,89 +113,29 @@ export default async function handler(
   }
 }
 
-function calculateAllResults(
-  levelData: LevelData, 
-  rawCurrentLevel: number, 
-  rawDesiredLevel: number
-): ResponseData {
-  const maxLevel = Math.max(...Object.values(levelData.rarityCaps));
-
-  const validCurrentLevel = Math.max(1, Math.min(Math.abs(rawCurrentLevel), maxLevel - 1));
-  const validDesiredLevel = Math.max(validCurrentLevel + 1, Math.min(Math.abs(rawDesiredLevel), maxLevel));
-
-  const currentRarity = determineRarity(levelData.rarityCaps, validCurrentLevel);
-  const maxLevelForRarity = levelData.rarityCaps[currentRarity];
-
-  const results: CalculationResult[] = [];
-
-  if (validCurrentLevel < validDesiredLevel) {
-    const resources = calculateResources(
-      levelData.levelingData,
-      validCurrentLevel,
-      validDesiredLevel
-    );
-    
-    results.push({
-      ...resources,
-      description: `Level ${validCurrentLevel} → ${validDesiredLevel}`
-    });
-  }
-
-  if (validCurrentLevel < maxLevelForRarity && maxLevelForRarity !== validDesiredLevel) {
-    const resources = calculateResources(
-      levelData.levelingData,
-      validCurrentLevel,
-      maxLevelForRarity
-    );
-    
-    results.push({
-      ...resources,
-      description: `Max ${currentRarity} (Level ${maxLevelForRarity})`
-    });
-  }
-
-  if (validDesiredLevel !== maxLevel && validCurrentLevel < maxLevel) {
-    const resources = calculateResources(
-      levelData.levelingData,
-      validCurrentLevel,
-      maxLevel
-    );
-    
-    results.push({
-      ...resources,
-      description: `Max Mystic Level (${maxLevel})`
-    });
-  }
-  
-  return {
-    results,
-    metadata: {
-      validCurrentLevel,
-      validDesiredLevel,
-      currentRarity,
-      maxLevel
-    }
-  };
+function getSortedRarities(rarityCaps: Record<string, number>): Array<{ name: string; level: number }> {
+  return Object.entries(rarityCaps)
+    .map(([name, level]) => ({ name, level }))
+    .sort((a, b) => a.level - b.level);
 }
 
-function determineRarity(rarityCaps: { [key: string]: number }, level: number): string {
-  const rarities = Object.keys(rarityCaps);
-  const sortedRarities = rarities.sort((a, b) => rarityCaps[a] - rarityCaps[b]);
+function determineRarity(rarityCaps: Record<string, number>, level: number): string {
+  const rarities = getSortedRarities(rarityCaps);
   
-  for (const rarity of sortedRarities) {
-    if (level <= rarityCaps[rarity]) {
-      return rarity;
+  for (const rarity of rarities) {
+    if (level <= rarity.level) {
+      return rarity.name;
     }
   }
   
-  return sortedRarities[sortedRarities.length - 1];
+  return rarities[rarities.length - 1].name;
 }
 
 function calculateResources(
   levelingData: LevelingDataEntry[], 
   fromLevel: number, 
   toLevel: number
-): ResourceResult {
+): { goldNeeded: number; shardsNeeded: number } {
   let goldNeeded = 0;
   let shardsNeeded = 0;
   
@@ -187,13 +152,12 @@ function calculateResources(
       if (lastEntry) {
         shardsNeeded += lastEntry.shards.toReachCurrent + 
           (level - lastKnownLevel) * lastEntry.shards.increaseFromPrev;
-        
         goldNeeded += lastEntry.gold.toReachCurrent + 
           (level - lastKnownLevel) * lastEntry.gold.increaseFromPrev;
       }
     }
   }
-
+  
   return {
     goldNeeded: Math.max(0, goldNeeded),
     shardsNeeded: Math.max(0, shardsNeeded)
