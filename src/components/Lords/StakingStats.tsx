@@ -74,23 +74,15 @@ export function StakingStats({ stats, loading, onRefresh }: StakingStatsProps) {
 
   return (
     <div className="stats-container">
-      <div className="stats-title flex justify-between items-center" style={{display: 'flex', alignItems: 'stretch'}}>
+      <div className="lords-stats-title">
         <span>Lord Staking Statistics</span>
-        <div className="relative" style={{ position: 'relative', display: 'flex' }}>
           {!isUpToDate && (
             <button 
-              className={`btn btn-secondary text-sm ${isRefreshing ? 'opacity-50' : ''} ${
+              className={`lords-refresh-btn btn-secondary text-sm ${isRefreshing ? 'opacity-50' : ''} ${
                 cooldownActive ? 'cursor-not-allowed' : ''
               }`}
               onClick={handleRefresh}
               disabled={isRefreshing || cooldownActive || loading || isLoadingBalance}
-              style={{
-                marginLeft: '10px',
-                padding: '7px 10px',
-                fontSize: '12px',
-                position: 'relative',
-                overflow: 'hidden',
-              }}
             >
               {cooldownActive && (
                 <div 
@@ -126,9 +118,8 @@ export function StakingStats({ stats, loading, onRefresh }: StakingStatsProps) {
               )}
             </button>
           )}
-          <div style={{ display: 'flex', fontSize: 14, alignItems: 'center', color: 'orange', marginLeft: 6 }}>
-            (Updates every UTC+10)
-          </div>
+        <div className="lords-uptodate">
+          (Updates every UTC+10)
         </div>
       </div>
       

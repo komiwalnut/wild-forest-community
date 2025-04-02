@@ -63,6 +63,12 @@ export function OwnersList({ owners, loading, searchTerm, setSearchTerm }: Owner
       setSortByRafflePower(sortByRafflePower === 'asc' ? 'desc' : 'asc');
       setActiveSortField('rafflePower');
     };
+
+    const formatAddress = (address: string) => {
+      return window.innerWidth < 768 
+        ? `${address.substring(0, 6)}...${address.substring(address.length - 4)}`
+        : address;
+    };
     
     const renderHeader = () => (
       <div className="card-header">
@@ -103,14 +109,14 @@ export function OwnersList({ owners, loading, searchTerm, setSearchTerm }: Owner
             <table className="data-table">
               <thead>
                 <tr>
-                  <th>Owner Address</th>
-                  <th>Total Lords</th>
-                  <th>Rare</th>
-                  <th>Epic</th>
-                  <th>Legendary</th>
-                  <th>Mystic</th>
-                  <th>Staked Lords</th>
-                  <th>Raffle Power</th>
+                  <th>Address</th>
+                  <th>Total</th>
+                  <th className="hidden md:table-cell">Rare</th>
+                  <th className="hidden md:table-cell">Epic</th>
+                  <th className="hidden md:table-cell">Legendary</th>
+                  <th className="hidden md:table-cell">Mystic</th>
+                  <th>Staked</th>
+                  <th>Power</th>
                 </tr>
               </thead>
               <tbody>
@@ -118,10 +124,10 @@ export function OwnersList({ owners, loading, searchTerm, setSearchTerm }: Owner
                   <tr key={index}>
                     <td><div className="skeleton-line"></div></td>
                     <td><div className="skeleton-line"></div></td>
-                    <td><div className="skeleton-line"></div></td>
-                    <td><div className="skeleton-line"></div></td>
-                    <td><div className="skeleton-line"></div></td>
-                    <td><div className="skeleton-line"></div></td>
+                    <td className="hidden md:table-cell"><div className="skeleton-line"></div></td>
+                    <td className="hidden md:table-cell"><div className="skeleton-line"></div></td>
+                    <td className="hidden md:table-cell"><div className="skeleton-line"></div></td>
+                    <td className="hidden md:table-cell"><div className="skeleton-line"></div></td>
                     <td><div className="skeleton-line"></div></td>
                     <td><div className="skeleton-line"></div></td>
                   </tr>
@@ -150,22 +156,22 @@ export function OwnersList({ owners, loading, searchTerm, setSearchTerm }: Owner
       <div className="card">
         {renderHeader()}
         
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto mobile-table-container">
           <table className="data-table">
             <thead>
               <tr>
-                <th>Owner Address</th>
+                <th>Address</th>
                 <th onClick={toggleSortTotalLords} style={{ cursor: 'pointer' }} className="sortable-header">
-                  Total Lords
+                  Total
                   <span className="ml-1">{activeSortField === 'totalLords' ? (sortByTotalLords === 'desc' ? '▼' : '▲') : '▽'}</span>
                 </th>
-                <th className="raffle staked rare">Rare</th>
-                <th className="raffle staked epic">Epic</th>
-                <th className="raffle staked legendary">Legendary</th>
-                <th className="raffle staked mystic">Mystic</th>
-                <th>Staked Lords</th>
+                <th className="hidden md:table-cell raffle staked rare">Rare</th>
+                <th className="hidden md:table-cell raffle staked epic">Epic</th>
+                <th className="hidden md:table-cell raffle staked legendary">Leg</th>
+                <th className="hidden md:table-cell raffle staked mystic">Myst</th>
+                <th>Staked</th>
                 <th className="raffle power sortable-header" onClick={toggleSortRafflePower} style={{ cursor: 'pointer' }}>
-                  Raffle Power
+                  Power
                   <span className="ml-1">{activeSortField === 'rafflePower' ? (sortByRafflePower === 'desc' ? '▼' : '▲') : '▽'}</span>
                 </th>
               </tr>
@@ -179,15 +185,16 @@ export function OwnersList({ owners, loading, searchTerm, setSearchTerm }: Owner
                       target="_blank"
                       rel="noopener noreferrer"
                       className="contract-link"
+                      title={owner.address}
                     >
-                      {owner.address}
+                      {formatAddress(owner.address)}
                     </a>
                   </td>
                   <td>{owner.totalLords}</td>
-                  <td>{owner.rare}</td>
-                  <td>{owner.epic}</td>
-                  <td>{owner.legendary}</td>
-                  <td>{owner.mystic}</td>
+                  <td className="hidden md:table-cell">{owner.rare}</td>
+                  <td className="hidden md:table-cell">{owner.epic}</td>
+                  <td className="hidden md:table-cell">{owner.legendary}</td>
+                  <td className="hidden md:table-cell">{owner.mystic}</td>
                   <td>{owner.staked}</td>
                   <td>{owner.rafflePower.toLocaleString()}</td>
                 </tr>

@@ -37,7 +37,12 @@ export function Header() {
               </Link>
               <Link href="/raffle" legacyBehavior>
                 <a className={`nav-link ${router.pathname === '/raffle' ? 'active' : ''}`}>
-                  Organize Raffle
+                  Raffle
+                </a>
+              </Link>
+              <Link href="/calculator" legacyBehavior>
+                <a className={`nav-link ${router.pathname === '/calculator' ? 'active' : ''}`}>
+                  Calculator
                 </a>
               </Link>
             </nav>

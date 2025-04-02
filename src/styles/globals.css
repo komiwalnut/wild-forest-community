@@ -70,7 +70,7 @@ body {
 .nav-container {
   display: flex;
   margin-left: 2rem;
-  gap: 1.5rem;
+  gap: 0.5rem;
 }
 
 
@@ -217,6 +217,12 @@ body {
   border-radius: 0.5rem;
 }
 
+.mobile-table-container {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
 .data-table {
   width: 100%;
   border-collapse: collapse;
@@ -346,6 +352,34 @@ footer {
   font-weight: 600;
   color: var(--color-light);
   margin-bottom: 1.5rem;
+}
+
+.lords-stats-title {
+  display: flex;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--color-light);
+  margin-bottom: 1.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.lords-refresh-btn {
+  margin-left: 8px;
+  padding: 7px 10px;
+  font-size: 12px;
+  position: relative;
+  overflow: hidden;
+}
+
+.lords-uptodate {
+  display: 'flex' !important;
+  font-size: 14px;
+  align-items: 'center' !important;
+  color: orange;
+  margin-left: 6px;
+  position: relative;
+  display: flex;
 }
 
 .stat-icon {
@@ -563,6 +597,10 @@ footer {
   .main-content {
     padding: 0rem 1rem;
   }
+  
+  .lords-uptodate {
+    margin-left: 0px !important;
+  }
 
   .checkbox-group {
     padding-top: 0 !important;
@@ -601,6 +639,40 @@ footer {
     font-size: 1rem;
   }
 
+  .data-table th,
+  .data-table td {
+    padding: 0.5rem 0.4rem;
+    font-size: 0.85rem;
+    white-space: nowrap;
+  }
+
+  .data-table th:first-child,
+  .data-table td:first-child {
+    min-width: 90px;
+  }
+
+  .data-table th:last-child,
+  .data-table td:last-child {
+    min-width: 70px;
+  }
+
+  .stat-card {
+    padding: 1rem;
+  }
+  
+  .stat-icon {
+    font-size: 1.5rem;
+    margin-right: 0.75rem;
+  }
+  
+  .stat-value {
+    font-size: 2rem;
+  }
+  
+  .stat-label {
+    font-size: 0.875rem;
+  }
+
   .address-controls {
     flex-direction: column;
     align-items: flex-start;
@@ -613,6 +685,12 @@ footer {
   
   .button-group button {
     flex: 1;
+  }
+
+  .buttons-row button {
+    margin-right: 0;
+    width: 100%;
+    margin-bottom: 10px;
   }
   
   .validation-group {
@@ -816,6 +894,10 @@ select::-ms-expand {
   font-weight: 700;
   position: relative;
   transition: all 0.2s ease;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .contract-link:hover {
@@ -967,14 +1049,6 @@ select::-ms-expand {
   margin-bottom: 10px;
 }
 
-@media (max-width: 768px) {
-  .buttons-row button {
-    margin-right: 0;
-    width: 100%;
-    margin-bottom: 10px;
-  }
-}
-
 .address-controls {
   display: flex;
   justify-content: space-between;
@@ -1011,7 +1085,7 @@ select::-ms-expand {
 
 .participant-group {
   display: flex;
-  gap: 15px;
+  gap: 10px;
   align-items: flex-end;
   margin-left: auto;
 }
