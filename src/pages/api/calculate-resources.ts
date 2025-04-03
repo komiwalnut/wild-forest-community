@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { getMasterCache } from '../../utils/redis';
+import { getMasterCache, setMasterCache } from '../../utils/redis';
 import { LevelingDataEntry, LevelData, CalculationResult } from '../../types';
 
 export default async function handler(
@@ -22,13 +22,37 @@ export default async function handler(
       });
     }
     
-    const levelData = await getMasterCache<LevelData>('unit_level');
-    
+    let levelData = await getMasterCache<LevelData>('unit_level');
+
     if (!levelData || !Array.isArray(levelData.levelingData) || !levelData.rarityCaps) {
-      return res.status(404).json({ 
-        error: 'Data not found',
-        message: 'Level data not found in cache or has invalid format' 
-      });
+      try {
+        const LEVEL_DATA_API_URL = process.env.LEVEL_DATA_API_URL || '';
+        const ADMIN_API_KEY = process.env.ADMIN_API_KEY;
+        
+        const response = await fetch(LEVEL_DATA_API_URL, {
+          headers: {
+            'x-api-key': ADMIN_API_KEY || ''
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Failed to fetch level data: ${response.statusText}`);
+        }
+        
+        levelData = await response.json();
+        
+        if (!levelData || !Array.isArray(levelData.levelingData) || !levelData.rarityCaps) {
+          throw new Error('Invalid data format received from API');
+        }
+
+        await setMasterCache('unit_level', levelData);
+      } catch (fetchError) {
+        console.error('Error fetching level data:', fetchError);
+        return res.status(404).json({ 
+          error: 'Data not found',
+          message: `Failed to fetch level data: ${fetchError instanceof Error ? fetchError.message : 'Unknown error'}`
+        });
+      }
     }
     
     const maxLevel = Math.max(...Object.values(levelData.rarityCaps));

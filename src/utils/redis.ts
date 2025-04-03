@@ -33,6 +33,7 @@ export async function getFromCache<T>(key: string): Promise<T | null> {
     try {
       await redis.del(key);
     } catch {
+      // Ignore any errors when deleting a potentially corrupted key
     }
     return null;
   }
@@ -51,6 +52,7 @@ export async function setCache<T>(key: string, data: T, ttl?: number): Promise<v
     try {
       await redis.del(key);
     } catch {
+      // Ignore any errors when deleting a potentially corrupted key
     }
   }
 }
@@ -77,5 +79,5 @@ export async function getMasterCache<T>(collectionKey: string): Promise<T | null
 export async function setMasterCache<T>(collectionKey: string, data: T): Promise<void> {
   if (!redis) return;
   const masterKey = `master:${collectionKey}`;
-  return setCache(masterKey, data);
+  return setCache<T>(masterKey, data);
 }
