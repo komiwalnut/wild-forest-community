@@ -4,6 +4,7 @@ import { Layout } from '../components/Layout/Layout';
 import { useOwnersData } from '../hooks/useOwnersData';
 import { StakersMap } from '../components/Map/StakersMap';
 import { OwnerData } from '../types';
+import { RestrictedAccess } from '../components/Access/RestrictedAccess';
 
 export default function MapPage() {
   const {
@@ -23,24 +24,26 @@ export default function MapPage() {
       </Head>
 
       <Layout>
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-primary-light mb-2"></h1>
-        </div>
-
-        {error && (
-          <div className="error-message">
-            {error}
+        <RestrictedAccess>
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-bold text-primary-light mb-2"></h1>
           </div>
-        )}
 
-        <div style={{ height: 'calc(100vh - 200px)', minHeight: '600px' }}>
-          <StakersMap 
-            owners={owners} 
-            loading={loading} 
-            onSelectStaker={setSelectedStaker}
-            selectedStaker={selectedStaker}
-          />
-        </div>
+          {error && (
+            <div className="error-message">
+              {error}
+            </div>
+          )}
+
+          <div style={{ height: 'calc(100vh - 200px)', minHeight: '600px' }}>
+            <StakersMap 
+              owners={owners} 
+              loading={loading} 
+              onSelectStaker={setSelectedStaker}
+              selectedStaker={selectedStaker}
+            />
+          </div>
+        </RestrictedAccess>
       </Layout>
     </>
   );

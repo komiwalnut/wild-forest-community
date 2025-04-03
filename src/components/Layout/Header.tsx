@@ -2,9 +2,11 @@ import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
+import { useDeviceDetection } from '../../hooks/useDeviceDetection';
 
 export function Header() {
   const router = useRouter();
+  const { isMobile, isClient } = useDeviceDetection();
   
   return (
     <header className="navbar">
@@ -30,11 +32,13 @@ export function Header() {
                   Owners
                 </a>
               </Link>
-              <Link href="/map" legacyBehavior>
-                <a className={`nav-link ${router.pathname === '/map' ? 'active' : ''}`}>
-                  Map
-                </a>
-              </Link>
+              {(!isClient || !isMobile) && (
+                <Link href="/map" legacyBehavior>
+                  <a className={`nav-link ${router.pathname === '/map' ? 'active' : ''}`}>
+                    Map
+                  </a>
+                </Link>
+              )}
               <Link href="/raffle" legacyBehavior>
                 <a className={`nav-link ${router.pathname === '/raffle' ? 'active' : ''}`}>
                   Raffle
