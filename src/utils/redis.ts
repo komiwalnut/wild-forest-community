@@ -44,9 +44,13 @@ export async function setCache<T>(key: string, data: T, ttl?: number): Promise<v
   
   try {
     const jsonData = JSON.stringify(data);
-    const expirySeconds = ttl ?? getTimeUntil6PMPH();
-    
-    await redis.setex(key, expirySeconds, jsonData);
+
+    if (key === 'unit_level' || key === 'master:unit_level') {
+      await redis.set(key, jsonData);
+    } else {
+      const expirySeconds = ttl ?? getTimeUntil6PMPH();
+      await redis.setex(key, expirySeconds, jsonData);
+    }
   } catch (error) {
     console.error(`Redis cache set error for key ${key}:`, error);
     try {
