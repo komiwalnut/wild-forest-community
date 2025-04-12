@@ -105,7 +105,7 @@ export function OwnersList({ owners, loading, searchTerm, setSearchTerm }: Owner
       return (
         <div className="card">
           {renderHeader()}
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto mobile-table-container">
             <table className="data-table">
               <thead>
                 <tr>
