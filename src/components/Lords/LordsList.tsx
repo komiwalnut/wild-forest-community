@@ -163,7 +163,7 @@ export function LordsList({ lords, loading, isFetchingMore }: LordsListProps) {
             </div>
             <div className="lord-card-body">
               <div className="lord-attribute">
-                <span className="attribute-label">Species:</span>
+                <span className="attribute-label">Specie:</span>
                 <span className="attribute-value">
                   {lord.attributes.specie.length > 0 
                     ? formatAttribute(lord.attributes.specie[0]) 

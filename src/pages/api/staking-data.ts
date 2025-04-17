@@ -6,6 +6,11 @@ import { getFromCache, setCache, getMasterCache, setMasterCache } from '../../ut
 
 const STAKING_CONTRACT = '0xfb597d6fa6c08f5434e6ecf69114497343ae13dd';
 
+function cleanAndFormatAttribute(attr: string): string {
+  const cleaned = attr.replace(/"/g, '');
+  return cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
+}
+
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
@@ -121,8 +126,8 @@ export default async function handler(
         isStaked: isStaked,
         stakingDuration: isStaked ? stakingDuration : null,
         attributes: {
-          rank: lord.attributes?.rank || [],
-          specie: lord.attributes?.specie || [],
+          rank: lord.attributes?.rank ? lord.attributes.rank.map(cleanAndFormatAttribute) : [],
+          specie: lord.attributes?.specie ? lord.attributes.specie.map(cleanAndFormatAttribute) : [],
         }
       };
     });
