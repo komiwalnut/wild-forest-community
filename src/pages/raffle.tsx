@@ -49,7 +49,7 @@ export default function RafflePage() {
         <link rel="icon" href="/images/favicon.ico" />
       </Head>
 
-      <Layout>
+      <Layout navType="lords">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-primary-light mb-2"></h1>
         </div>

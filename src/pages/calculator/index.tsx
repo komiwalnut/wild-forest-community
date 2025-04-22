@@ -1,7 +1,7 @@
 import React from 'react';
 import Head from 'next/head';
-import { Layout } from '../components/Layout/Layout';
-import { LevelCalculator } from '../components/Calculator/LevelCalculator';
+import { Layout } from '../../components/Layout/Layout';
+import { LevelCalculator } from '../../components/Calculator/LevelCalculator';
 
 export default function LevelCalculatorPage() {
   return (
@@ -12,7 +12,7 @@ export default function LevelCalculatorPage() {
         <link rel="icon" href="/images/favicon.ico" />
       </Head>
 
-      <Layout>
+      <Layout navType="calculator">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-primary-light mb-2"></h1>
         </div>
