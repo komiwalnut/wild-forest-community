@@ -4,15 +4,6 @@ const nextConfig = {
   images: {
     domains: []
   },
-  async redirects() {
-    return [
-      {
-        source: '/',
-        destination: '/lords',
-        permanent: true,
-      },
-    ]
-  }
 };
 
 module.exports = nextConfig;
