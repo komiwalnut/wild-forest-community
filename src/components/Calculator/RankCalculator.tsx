@@ -8,6 +8,14 @@ interface RankUpResult {
   description: string;
 }
 
+interface TokenPriceResponse {
+  result: {
+    [address: string]: {
+      usd: number;
+    }
+  }
+}
+
 export function RankCalculator() {
   const [currentRarity, setCurrentRarity] = useState<string>('Common');
   const [desiredRarity, setDesiredRarity] = useState<string>('Uncommon');
@@ -15,6 +23,7 @@ export function RankCalculator() {
   const [calculating, setCalculating] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [perks, setPerks] = useState<Perk[]>([]);
+  const [wfTokenPrice, setWfTokenPrice] = useState<number>(0);
   const [selectedPerks, setSelectedPerks] = useState<{[key: string]: {
     perk1: string;
     perk2?: string;
@@ -33,12 +42,13 @@ export function RankCalculator() {
   const [showPredictions, setShowPredictions] = useState(false);
 
   const rarities = ['Common', 'Uncommon', 'Rare', 'Epic', 'Legendary', 'Mystic'];
-  const raritiesToWfTokens: {[key: string]: number} = {
-    'Uncommon': 30,
-    'Rare': 60,
-    'Epic': 160,
-    'Legendary': 600,
-    'Mystic': 2400
+  
+  const rarityUpgradeUsdValues: {[key: string]: number} = {
+    'Uncommon': 0.114,
+    'Rare': 0.214,
+    'Epic': 0.556,
+    'Legendary': 2.097,
+    'Mystic': 8.38
   };
 
   const rarityToUnits: {[key: string]: {[key: string]: number}} = {
@@ -56,6 +66,33 @@ export function RankCalculator() {
     'Epic': 1,
     'Legendary': 2,
     'Mystic': 3
+  };
+
+  useEffect(() => {
+    fetchPerks();
+    fetchWfTokenPrice();
+  }, []);
+
+  const fetchWfTokenPrice = async () => {
+    try {
+      const response = await fetch('/api/token-price');
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch WF token price: ${response.statusText}`);
+      }
+      
+      const data: TokenPriceResponse = await response.json();
+      const wfPrice = data.result['0x03affae7e23fd11c85d0c90cc40510994d49e175']?.usd || 0;
+      setWfTokenPrice(wfPrice);
+    } catch (err) {
+      console.error('Error fetching WF token price:', err);
+      setError(err instanceof Error ? err.message : 'Failed to fetch WF token price');
+    }
+  };
+
+  const calculateWfTokensFromUsd = (usdValue: number): number => {
+    if (wfTokenPrice <= 0) return 0;
+    return Math.ceil(usdValue / wfTokenPrice);
   };
 
   const showPerksSelection = () => {
@@ -89,10 +126,6 @@ export function RankCalculator() {
     
     return totalUnits;
   };
-
-  useEffect(() => {
-    fetchPerks();
-  }, []);
 
   const fetchPerks = async () => {
     setLoading(true);
@@ -265,7 +298,12 @@ export function RankCalculator() {
       setCalculating(true);
       setError(null);
 
-      const wfTokens = raritiesToWfTokens[desiredRarity] || 0;
+      if (wfTokenPrice <= 0) {
+        await fetchWfTokenPrice();
+      }
+
+      const usdValue = rarityUpgradeUsdValues[desiredRarity] || 0;
+      const wfTokens = calculateWfTokensFromUsd(usdValue);
       
       setResults([
         {
@@ -471,7 +509,6 @@ export function RankCalculator() {
           
           const uniquePerks = Object.values(combinedPerks);
           
-          // Styles for the table
           const tableStyles = {
             tableLayout: 'fixed' as const,
             width: '100%'
@@ -596,7 +633,7 @@ export function RankCalculator() {
             <span>Loading perks...</span>
           </div>
         ) : (
-          <>            
+          <>    
             {showPerksSelection() && (
               <div className="mb-6">
                 <div className="stats-title mb-2">Units to sacrifice for rankup</div>

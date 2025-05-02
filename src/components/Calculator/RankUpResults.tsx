@@ -49,7 +49,7 @@ export function RankUpResults({ results }: RankUpResultsProps) {
             {results.map((result, index) => (
               <tr key={index}>
                 <td>{result.description}</td>
-                <td>{result.wfTokens.toLocaleString()}</td>
+                <td>~{result.wfTokens.toLocaleString()}</td>
                 <td>{result.unitsRequired}</td>
               </tr>
             ))}
