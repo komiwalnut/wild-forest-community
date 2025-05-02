@@ -20,24 +20,24 @@ export function Header({ showNav = true, navType = 'default' }: HeaderProps) {
       return (
         <nav className="nav-container">
           <Link href="/lords" legacyBehavior>
-            <a className={`nav-link ${router.pathname === '/lords' ? 'active' : ''}`}>
+            <a className={`nav-link ${router.pathname === '/lords' || router.pathname === '/lords/index' ? 'active' : ''}`}>
               Lords
             </a>
           </Link>
-          <Link href="/owners" legacyBehavior>
-            <a className={`nav-link ${router.pathname === '/owners' ? 'active' : ''}`}>
+          <Link href="/lords/owners" legacyBehavior>
+            <a className={`nav-link ${router.pathname === '/lords/owners' ? 'active' : ''}`}>
               Owners
             </a>
           </Link>
           {(!isClient || !isMobile) && (
-            <Link href="/map" legacyBehavior>
-              <a className={`nav-link ${router.pathname === '/map' ? 'active' : ''}`}>
+            <Link href="/lords/map" legacyBehavior>
+              <a className={`nav-link ${router.pathname === '/lords/map' ? 'active' : ''}`}>
                 Map
               </a>
             </Link>
           )}
-          <Link href="/raffle" legacyBehavior>
-            <a className={`nav-link ${router.pathname === '/raffle' ? 'active' : ''}`}>
+          <Link href="/lords/raffle" legacyBehavior>
+            <a className={`nav-link ${router.pathname === '/lords/raffle' ? 'active' : ''}`}>
               Raffle
             </a>
           </Link>
@@ -46,8 +46,8 @@ export function Header({ showNav = true, navType = 'default' }: HeaderProps) {
     } else if (navType === 'calculator') {
       return (
         <nav className="nav-container">
-          <Link href="/calculator" legacyBehavior>
-            <a className={`nav-link ${router.pathname === '/calculator' ? 'active' : ''}`}>
+          <Link href="/calculator/level" legacyBehavior>
+            <a className={`nav-link ${router.pathname === '/calculator/level' ? 'active' : ''}`}>
               Level Up
             </a>
           </Link>
@@ -62,14 +62,11 @@ export function Header({ showNav = true, navType = 'default' }: HeaderProps) {
       return (
         <nav className="nav-container">
           <Link href="/lords" legacyBehavior>
-            <a className={`nav-link ${router.pathname.startsWith('/lords') || 
-                                     router.pathname === '/owners' || 
-                                     router.pathname === '/map' || 
-                                     router.pathname === '/raffle' ? 'active' : ''}`}>
+            <a className={`nav-link ${router.pathname.startsWith('/lords') ? 'active' : ''}`}>
               Lords Dashboard
             </a>
           </Link>
-          <Link href="/calculator" legacyBehavior>
+          <Link href="/calculator/level" legacyBehavior>
             <a className={`nav-link ${router.pathname.startsWith('/calculator') ? 'active' : ''}`}>
               Unit Calculators
             </a>
@@ -78,7 +75,7 @@ export function Header({ showNav = true, navType = 'default' }: HeaderProps) {
       );
     }
   };
-  
+
   return (
     <header className="navbar">
       <div className="container mx-auto flex justify-between items-center">

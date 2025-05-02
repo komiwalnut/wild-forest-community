@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import Head from 'next/head';
-import { Layout } from '../components/Layout/Layout';
-import { useOwnersData } from '../hooks/useOwnersData';
-import { StakersMap } from '../components/Map/StakersMap';
-import { OwnerData } from '../types';
-import { RestrictedAccess } from '../components/Access/RestrictedAccess';
+import { Layout } from '../../components/Layout/Layout';
+import { useOwnersData } from '../../hooks/useOwnersData';
+import { StakersMap } from '../../components/Map/StakersMap';
+import { OwnerData } from '../../types';
+import { RestrictedAccess } from '../../components/Access/RestrictedAccess';
 
 export default function MapPage() {
   const {

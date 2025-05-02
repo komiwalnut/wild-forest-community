@@ -1,10 +1,10 @@
 import React from 'react';
 import Head from 'next/head';
-import { Layout } from '../components/Layout/Layout';
-import { StakingStats } from '../components/Lords/StakingStats';
-import { FilterControls } from '../components/Lords/FilterControls';
-import { LordsList } from '../components/Lords/LordsList';
-import { useLordsData } from '../hooks/useLordsData';
+import { Layout } from '../../components/Layout/Layout';
+import { StakingStats } from '../../components/Lords/StakingStats';
+import { FilterControls } from '../../components/Lords/FilterControls';
+import { LordsList } from '../../components/Lords/LordsList';
+import { useLordsData } from '../../hooks/useLordsData';
 
 export default function LordsPage() {
   const {

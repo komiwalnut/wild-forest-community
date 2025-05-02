@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import Head from 'next/head';
-import { Layout } from '../components/Layout/Layout';
-import { AddressInput } from '../components/Raffle/AddressInput';
-import { ParticipantsList } from '../components/Raffle/ParticipantsList';
-import { DrawWinners } from '../components/Raffle/DrawWinners';
-import { useRaffleData } from '../hooks/useRaffleData';
+import { Layout } from '../../components/Layout/Layout';
+import { AddressInput } from '../../components/Raffle/AddressInput';
+import { ParticipantsList } from '../../components/Raffle/ParticipantsList';
+import { DrawWinners } from '../../components/Raffle/DrawWinners';
+import { useRaffleData } from '../../hooks/useRaffleData';
 
 export default function RafflePage() {
   const {

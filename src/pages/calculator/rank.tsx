@@ -1,6 +1,8 @@
 import React from 'react';
 import Head from 'next/head';
 import { Layout } from '../../components/Layout/Layout';
+import { RankCalculator } from '../../components/Calculator/RankCalculator';
+import { PerkSystemInformation } from '../../components/Calculator/PerkSystemInformation';
 
 export default function RankCalculatorPage() {
   return (
@@ -15,15 +17,10 @@ export default function RankCalculatorPage() {
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-primary-light mb-2"></h1>
         </div>
+
+        <PerkSystemInformation />
         
-        <div className="card">
-          <div className="text-center py-12">
-            <h2 className="text-2xl font-bold text-primary-light mb-4">🔨 Coming Soon</h2>
-            <p className="text-light-alt">
-              The Unit Rank Calculator is currently under development and will be available soon.
-            </p>
-          </div>
-        </div>
+        <RankCalculator />
       </Layout>
     </>
   );
