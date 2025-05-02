@@ -209,5 +209,26 @@ export type SortOption =
   | 'tokenIdAsc'
   | 'tokenIdDesc';
 
+export interface RankUpCost {
+  units: number;
+  wf: number;
+}
+
+export interface RankUpResult {
+  fromRarity: string;
+  toRarity: string;
+  unitsNeeded: number;
+  wfNeeded: number;
+  description: string;
+}
+
+export interface Perk {
+  name: string;
+  description: string;
+  rarity: string;
+  effectValue?: number;
+  category?: string;
+}
+
 export const LORD_SPECIES = ['All', 'Wolf', 'Owl', 'Raven', 'Boar', 'Fox'];
 export const LORD_RARITIES = ['All', 'Rare', 'Epic', 'Legendary', 'Mystic'];
