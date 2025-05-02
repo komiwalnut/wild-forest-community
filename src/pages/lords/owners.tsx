@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import Head from 'next/head';
-import { Layout } from '../components/Layout/Layout';
-import { OwnersStats } from '../components/Owners/OwnersStats';
-import { OwnersList } from '../components/Owners/OwnersList';
-import { useOwnersData } from '../hooks/useOwnersData';
+import { Layout } from '../../components/Layout/Layout';
+import { OwnersStats } from '../../components/Owners/OwnersStats';
+import { OwnersList } from '../../components/Owners/OwnersList';
+import { useOwnersData } from '../../hooks/useOwnersData';
 
 export default function OwnersPage() {
     const [isExpanded, setIsExpanded] = useState(false);
