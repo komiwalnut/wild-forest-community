@@ -2,10 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { RankUpResults } from './RankUpResults';
 import { Perk } from '../../types';
 
+interface RankUpResult {
+  wfTokens: number;
+  unitsRequired: number;
+  description: string;
+}
+
 export function RankCalculator() {
   const [currentRarity, setCurrentRarity] = useState<string>('Common');
   const [desiredRarity, setDesiredRarity] = useState<string>('Uncommon');
-  const [results, setResults] = useState<any[]>([]);
+  const [results, setResults] = useState<RankUpResult[]>([]);
   const [calculating, setCalculating] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [perks, setPerks] = useState<Perk[]>([]);
@@ -416,15 +422,6 @@ export function RankCalculator() {
       );
     }
     
-    const getRowBackgroundColor = (rarity: string): React.CSSProperties => {
-      switch (rarity.toLowerCase()) {
-        case 'common': return { backgroundColor: 'rgba(159, 182, 183, 0.5)' };
-        case 'uncommon': return { backgroundColor: 'rgba(28,227,158, 0.5)' };
-        case 'rare': return { backgroundColor: 'rgba(27, 168, 249, 0.5)' };
-        default: return {};
-      }
-    };
-    
     const slotGroups: {[key: number]: typeof predictedPerks} = {};
     predictedPerks.forEach(prediction => {
       if (!slotGroups[prediction.slot]) {
@@ -474,6 +471,12 @@ export function RankCalculator() {
           
           const uniquePerks = Object.values(combinedPerks);
           
+          // Styles for the table
+          const tableStyles = {
+            tableLayout: 'fixed' as const,
+            width: '100%'
+          };
+          
           return (
             <div key={slot} className="mb-6">
               <h4 className="text-lg font-semibold mb-3">Perk Slot {slot}</h4>
@@ -484,27 +487,39 @@ export function RankCalculator() {
                 </div>
               ) : (
                 <div className="overflow-x-auto">
-                  <table className="w-full data-table">
+                  <table className="w-full data-table" style={tableStyles}>
+                    <colgroup>
+                      <col style={{ width: '50%' }} />
+                      <col style={{ width: '50%' }} />
+                    </colgroup>
                     <thead>
                       <tr>
-                        <th style={{ width: '50%' }}>Perk</th>
-                        <th style={{ width: '50%' }}>Chance</th>
+                        <th>Perk</th>
+                        <th>Chance</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {uniquePerks.length > 0 ? uniquePerks.map((prediction, index) => (
-                        <tr 
-                          key={index} 
-                          style={getRowBackgroundColor(prediction.perk.rarity)}
-                        >
-                          <td className={getPerkRarityClass(prediction.perk.rarity)}>
-                            {getPerkDisplayName(prediction.perk)}
-                          </td>
-                          <td className={prediction.chance > 30 ? 'text-green-400 font-bold' : ''}>
-                            {prediction.chance.toFixed(1)}%
-                          </td>
-                        </tr>
-                      )) : (
+                      {uniquePerks.length > 0 ? uniquePerks.map((prediction, index) => {
+                        let bgStyle = {};
+                        if (prediction.perk.rarity.toLowerCase() === 'common') {
+                          bgStyle = { backgroundColor: 'rgba(159, 182, 183, 0.5)' };
+                        } else if (prediction.perk.rarity.toLowerCase() === 'uncommon') {
+                          bgStyle = { backgroundColor: 'rgba(28,227,158, 0.5)' };
+                        } else if (prediction.perk.rarity.toLowerCase() === 'rare') {
+                          bgStyle = { backgroundColor: 'rgba(27, 168, 249, 0.5)' };
+                        }
+                        
+                        return (
+                          <tr key={index} style={bgStyle}>
+                            <td className={getPerkRarityClass(prediction.perk.rarity)}>
+                              {getPerkDisplayName(prediction.perk)}
+                            </td>
+                            <td className={prediction.chance > 30 ? 'text-green-400 font-bold' : ''}>
+                              {prediction.chance.toFixed(1)}%
+                            </td>
+                          </tr>
+                        );
+                      }) : (
                         <tr>
                           <td colSpan={2} className="text-center py-2">
                             No predictions available for this slot
