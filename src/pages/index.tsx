@@ -53,7 +53,7 @@ export default function LandingPage() {
               <p className="text-light-alt mb-4">
                 Tools to calculate resources needed for unit upgrades in Wild Forest.
               </p>
-              <Link href="/calculator" className="project-link">
+              <Link href="/calculator/level" className="project-link">
                 Use Unit Calculators
               </Link>
             </div>
