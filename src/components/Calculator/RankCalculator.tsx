@@ -99,6 +99,34 @@ export function RankCalculator() {
     return rarityToPerkSlots[currentRarity] > 0;
   };
 
+  const calculateTotalBaseUnits = (startRarity: string, targetRarity: string): number => {
+    const rarities = ['Common', 'Uncommon', 'Rare', 'Epic', 'Legendary', 'Mystic'];
+    const startIndex = rarities.indexOf(startRarity);
+    const targetIndex = rarities.indexOf(targetRarity);
+    
+    if (startIndex === -1 || targetIndex === -1 || startIndex >= targetIndex) {
+      return 0;
+    }
+
+    const rarityUpgradeMultipliers: {[key: string]: number} = {
+      'Uncommon': 2,
+      'Rare': 2,
+      'Epic': 3,   
+      'Legendary': 4,
+      'Mystic': 4  
+    };
+
+    let totalUnits = 1;
+    
+    for (let i = targetIndex; i > startIndex; i--) {
+      const currentRarity = rarities[i];
+      const multiplier = rarityUpgradeMultipliers[currentRarity];
+      totalUnits *= multiplier;
+    }
+    
+    return totalUnits;
+  };
+
   const getRequiredUnits = () => {
     if (rarityToUnits[currentRarity] && rarityToUnits[currentRarity][desiredRarity]) {
       return rarityToUnits[currentRarity][desiredRarity];
@@ -304,11 +332,12 @@ export function RankCalculator() {
 
       const usdValue = rarityUpgradeUsdValues[desiredRarity] || 0;
       const wfTokens = calculateWfTokensFromUsd(usdValue);
+      const totalUnits = calculateTotalBaseUnits(currentRarity, desiredRarity);
       
       setResults([
         {
           wfTokens,
-          unitsRequired: getRequiredUnits(),
+          unitsRequired: totalUnits,
           description: `${currentRarity} → ${desiredRarity}`
         }
       ]);

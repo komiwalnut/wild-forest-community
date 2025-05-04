@@ -40,7 +40,7 @@ export function RankUpResults({ results }: RankUpResultsProps) {
               </th>
               <th>
                 <div style={{ gap: 4, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <span>Units Required</span>
+                  <span>Total Units Required</span>
                 </div>
               </th>
             </tr>
