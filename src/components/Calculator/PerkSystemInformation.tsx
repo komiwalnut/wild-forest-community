@@ -1,7 +1,66 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+
+interface TokenPriceResponse {
+  result: {
+    [address: string]: {
+      usd: number;
+    }
+  }
+}
 
 export function PerkSystemInformation() {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [wfTokenPrice, setWfTokenPrice] = useState<number>(0);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const rarityUpgradeUsdValues: {[key: string]: number} = {
+    'Uncommon': 0.114,
+    'Rare': 0.214,
+    'Epic': 0.556,
+    'Legendary': 2.097,
+    'Mystic': 8.38
+  };
+
+  useEffect(() => {
+    fetchWfTokenPrice();
+  }, []);
+
+  const fetchWfTokenPrice = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/token-price');
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch WF token price: ${response.statusText}`);
+      }
+      
+      const data: TokenPriceResponse = await response.json();
+      const wfPrice = data.result['0x03affae7e23fd11c85d0c90cc40510994d49e175']?.usd || 0;
+      setWfTokenPrice(wfPrice);
+    } catch (err) {
+      console.error('Error fetching WF token price:', err);
+      setError(err instanceof Error ? err.message : 'Failed to fetch WF token price');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const calculateWfTokensFromUsd = (usdValue: number): number => {
+    if (wfTokenPrice <= 0) return 0;
+    return Math.ceil(usdValue / wfTokenPrice);
+  };
+
+  const getWfTokensForRankup = (targetRarity: string): string => {
+    const usdValue = rarityUpgradeUsdValues[targetRarity] || 0;
+    const tokens = calculateWfTokensFromUsd(usdValue);
+    
+    if (loading) {
+      return "Loading...";
+    }
+    
+    return `~${tokens} $WF`;
+  };
 
   return (
     <div className="filters-container mb-6">
@@ -25,12 +84,18 @@ export function PerkSystemInformation() {
           </ul>
           <p style={{ margin: 0 }}><span className="font-medium"><b>Rankup Cost</b></span></p>
           <ul className="list-disc pl-5 mb-3">
-            <li>Common to Uncommon: 30 $WF and 2 Common Units</li>
-            <li>Uncommon to Rare: 60 $WF and 2 Uncommon Units</li>
-            <li>Rare to Epic: 160 $WF and 3 Rare Units</li>
-            <li>Epic to Legendary: 600 $WF and 4 Epic Units</li>
-            <li>Legendary to Mystic: 2400 $WF and 4 Legendary Units</li>
+            <li>Common to Uncommon: {getWfTokensForRankup('Uncommon')} and 2 Common Units</li>
+            <li>Uncommon to Rare: {getWfTokensForRankup('Rare')} and 2 Uncommon Units</li>
+            <li>Rare to Epic: {getWfTokensForRankup('Epic')} and 3 Rare Units</li>
+            <li>Epic to Legendary: {getWfTokensForRankup('Legendary')} and 4 Epic Units</li>
+            <li>Legendary to Mystic: {getWfTokensForRankup('Mystic')} and 4 Legendary Units</li>
           </ul>
+          {loading && (
+            <p className="text-sm text-light-alt">Loading current $WF token prices...</p>
+          )}
+          {error && (
+            <p className="text-sm text-error">Error loading token prices: {error}</p>
+          )}
         </div>
       </div>
     </div>
