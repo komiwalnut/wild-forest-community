@@ -685,8 +685,8 @@ export function RankCalculator() {
             disabled={isCalculateDisabled() || loading}
           >
             {calculating ? (
-              <span className="flex items-center">
-                <div className="inline-spinner mr-2"></div>
+              <span className="flex items-center" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
+                <div className="inline-spinner mr-2" style={{ width: '10px', height: '10px' }}></div>
                 Calculating Resources
               </span>
             ) : (
