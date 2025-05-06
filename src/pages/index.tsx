@@ -49,12 +49,27 @@ export default function LandingPage() {
               />
             </div>
             <div className="project-content">
-              <h2 className="text-xl font-bold text-primary mb-2">Unit Level and Rank up Calculator</h2>
+              <h2 className="text-xl font-bold text-primary mb-2">Level & Rank Calculator</h2>
               <p className="text-light-alt mb-4">
-                Tools to calculate resources needed for unit upgrades in Wild Forest.
+                Tools to calculate resources needed for unit upgrades.
               </p>
               <Link href="/calculator/level" className="project-link">
                 Use Unit Calculators
+              </Link>
+            </div>
+          </div>
+
+          <div className="project-card">
+            <div className="project-image-container">
+
+            </div>
+            <div className="project-content">
+              <h2 className="text-xl font-bold text-primary mb-2">Want to share a tool?</h2>
+              <p className="text-light-alt mb-4">
+                Reach out to "Player 222" on the Wild Forest discord server so we can add it here.
+              </p>
+              <Link href="https://discord.gg/da99snhFhf" className="project-link">
+                Join Wild Forest Discord
               </Link>
             </div>
           </div>
