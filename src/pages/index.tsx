@@ -66,7 +66,7 @@ export default function LandingPage() {
             <div className="project-content">
               <h2 className="text-xl font-bold text-primary mb-2">Want to share a tool?</h2>
               <p className="text-light-alt mb-4">
-                Reach out to "Player 222" on the Wild Forest discord server so we can add it here.
+                Reach out to &quot;Player 222&quot; on the Wild Forest discord server so we can add it here.
               </p>
               <Link href="https://discord.gg/da99snhFhf" className="project-link">
                 Join Wild Forest Discord
