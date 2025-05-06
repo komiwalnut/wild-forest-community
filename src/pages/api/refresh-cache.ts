@@ -29,7 +29,7 @@ export default async function handler(
   try {
     await Promise.all([
       invalidateCache('lords:*'),
-      invalidateCache('master:*'),
+      invalidateCache('master:lords'),
       invalidateCache('owner:*'),
       invalidateCache('staking:*')
     ]);
