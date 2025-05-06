@@ -14,7 +14,20 @@ export function ResultsTable({ results }: ResultsTableProps) {
         <table className="data-table w-full">
           <thead>
             <tr>
-              <th>Goal</th>
+              <th>
+                <div style={{ gap: 4, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <div style={{ position: 'relative', width: 30, height: 30 }}>
+                      <Image 
+                        src="/images/unit.png" 
+                        alt="Unit" 
+                        fill
+                        sizes="30px"
+                        style={{ objectFit: 'contain' }}
+                      />
+                    </div>
+                    <span>Goal</span>
+                  </div>
+              </th>
               <th>
                 <div style={{ gap: 4, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <div style={{ position: 'relative', width: 30, height: 30 }}>
@@ -41,6 +54,15 @@ export function ResultsTable({ results }: ResultsTableProps) {
                     />
                   </div>
                   <span>Shards Required</span>
+                  <div style={{ position: 'relative', width: 30, height: 30 }}>
+                    <Image 
+                      src="/images/wild_shards.png" 
+                      alt="Wild Shards" 
+                      fill
+                      sizes="30px"
+                      style={{ objectFit: 'contain' }}
+                    />
+                  </div>
                 </div>
               </th>
             </tr>
