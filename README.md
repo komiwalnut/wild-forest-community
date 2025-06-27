@@ -1,5 +1,7 @@
 # Wild Forest Community
 
+# ⚠️ As of May 21, 2025, this is no longer maintained. Feel free to fork/clone this repo and make changes and host on your own. Once `wildforestcommunity.com` domain has expired, you may proceed to purchase it.
+
 ## 🌲 Overview
 
 Wild Forest Community is a collection of tools and resources for Wild Forest players, providing statistics, calculators, and utilities to enhance the gaming experience. This project originated as the Lords Dashboard but has expanded to include multiple tools under one unified platform.
